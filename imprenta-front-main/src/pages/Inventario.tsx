@@ -1,7 +1,7 @@
 // src/pages/Inventario.tsx
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { API_BASE } from '../api/config';
+import { apiClient } from '../api/client';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Package, Plus, Search, AlertTriangle, TrendingUp, TrendingDown,
@@ -57,7 +57,6 @@ function ModalMaterial({ item, onClose, onSave }: {
   onClose: () => void;
   onSave: () => void;
 }) {
-  const { token } = useAuth();
   const [form, setForm] = useState({
     nombre:       item?.material    || '',
     descripcion:  item?.descripcion || '',
@@ -73,18 +72,11 @@ function ModalMaterial({ item, onClose, onSave }: {
 
     setSaving(true);
     try {
-      const url    = item
-        ? `${API_BASE}/api/inventario/${item.id}`
-        : `${API_BASE}/api/inventario/materiales`;
-      const method = item ? 'PUT' : 'POST';
-
-      const res = await fetch(url, {
-        method,
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.msg || 'Error');
+      if (item) {
+        await apiClient.put(`/api/inventario/${item.id}`, form);
+      } else {
+        await apiClient.post('/api/inventario/materiales', form);
+      }
 
       toast.success(item ? 'Material actualizado' : 'Material creado ✅', { style: toastStyle });
       onSave();
@@ -171,7 +163,6 @@ function ModalMovimiento({ item, tipo, onClose, onSave }: {
   onClose: () => void;
   onSave: () => void;
 }) {
-  const { token } = useAuth();
   const [cantidad, setCantidad] = useState(1);
   const [saving, setSaving]     = useState(false);
 
@@ -179,13 +170,7 @@ function ModalMovimiento({ item, tipo, onClose, onSave }: {
     if (cantidad <= 0) return toast.error('La cantidad debe ser mayor a 0', { style: toastStyle });
     setSaving(true);
     try {
-      const res = await fetch(`${API_BASE}/api/inventario/movimientos`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ material_id: item.material_id, cantidad, tipo }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.msg || 'Error');
+      await apiClient.post('/api/inventario/movimientos', { material_id: item.material_id, cantidad, tipo });
       toast.success(`${tipo === 'entrada' ? 'Entrada' : 'Salida'} registrada ✅`, { style: toastStyle });
       onSave();
       onClose();
@@ -268,18 +253,21 @@ function ModalMovimiento({ item, tipo, onClose, onSave }: {
 
 // ── Modal historial ─────────────────────────────────────────────────────────
 function ModalHistorial({ item, onClose }: { item: ItemInventario; onClose: () => void }) {
-  const { token } = useAuth();
   const [movimientos, setMovimientos] = useState<Movimiento[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`${API_BASE}/api/inventario/movimientos?material_id=${item.material_id}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then(r => r.json())
-      .then(data => setMovimientos(data))
-      .catch(() => toast.error('Error al cargar historial', { style: toastStyle }))
-      .finally(() => setLoading(false));
+    const fetchHistorial = async () => {
+      try {
+        const data = await apiClient.get<Movimiento[]>(`/api/inventario/movimientos?material_id=${item.material_id}`);
+        setMovimientos(data);
+      } catch {
+        toast.error('Error al cargar historial', { style: toastStyle });
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchHistorial();
   }, []);
 
   return (
@@ -356,7 +344,7 @@ function ModalHistorial({ item, onClose }: { item: ItemInventario; onClose: () =
 
 // ── PÁGINA PRINCIPAL ────────────────────────────────────────────────────────
 export default function Inventario() {
-  const { token, user } = useAuth();
+  const { user } = useAuth();
   const [inventario, setInventario]   = useState<ItemInventario[]>([]);
   const [filtered, setFiltered]       = useState<ItemInventario[]>([]);
   const [loading, setLoading]         = useState(true);
@@ -375,11 +363,7 @@ export default function Inventario() {
   const fetchInventario = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/api/inventario`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error('Error al cargar inventario');
-      const data = await res.json();
+      const data = await apiClient.get<ItemInventario[]>('/api/inventario');
       setInventario(data);
       setFiltered(data);
     } catch (err: any) {
@@ -389,7 +373,7 @@ export default function Inventario() {
     }
   };
 
-  useEffect(() => { if (token) fetchInventario(); }, [token]);
+  useEffect(() => { fetchInventario(); }, []);
 
   useEffect(() => {
     let result = [...inventario];
@@ -414,12 +398,7 @@ export default function Inventario() {
     });
     if (!ok) return;
     try {
-      const res = await fetch(`${API_BASE}/api/inventario/${item.id}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.msg);
+      await apiClient.delete(`/api/inventario/${item.id}`);
       toast.success('Material eliminado', { style: toastStyle });
       fetchInventario();
     } catch (err: any) {

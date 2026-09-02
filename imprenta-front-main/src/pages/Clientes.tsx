@@ -1,23 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { API_BASE } from '../api/config';
+import { apiClient } from '../api/client';
+import type { Cliente } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Edit, Trash2, Search, AlertCircle, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Pagination, { usePagination } from '../components/Pagination';
 import { useConfirm } from '../components/ConfirmModal';
 
-interface Cliente {
-  id: number;
-  nombre: string;
-  telefono: string;
-  direccion: string;
-  email: string;
-  creado_en: string;
-}
-
 export default function Clientes() {
-  const { token } = useAuth();
   const { confirmar } = useConfirm();
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [filteredClientes, setFilteredClientes] = useState<Cliente[]>([]);
@@ -30,7 +20,7 @@ export default function Clientes() {
   const [currentCliente, setCurrentCliente] = useState<Cliente | null>(null);
   const [formData, setFormData] = useState({ nombre: '', telefono: '', direccion: '', email: '' });
 
-  useEffect(() => { if (token) fetchClientes(); }, [token]);
+  useEffect(() => { fetchClientes(); }, []);
 
   useEffect(() => {
     if (busqueda.trim() === '') { setFilteredClientes(clientes); return; }
@@ -45,11 +35,7 @@ export default function Clientes() {
   const fetchClientes = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/api/clientes`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error('Error al cargar clientes');
-      const data = await res.json();
+      const data = await apiClient.get<Cliente[]>('/api/clientes');
       setClientes(data || []);
       setFilteredClientes(data || []);
     } catch (err: any) { setError(err.message); }
@@ -66,15 +52,11 @@ export default function Clientes() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const url = isEdit && currentCliente
-        ? `${API_BASE}/api/clientes/${currentCliente.id}`
-        : `${API_BASE}/api/clientes`;
-      const res = await fetch(url, {
-        method: isEdit ? 'PUT' : 'POST',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
-      if (!res.ok) throw new Error('Error al guardar cliente');
+      if (isEdit && currentCliente) {
+        await apiClient.put(`/api/clientes/${currentCliente.id}`, formData);
+      } else {
+        await apiClient.post('/api/clientes', formData);
+      }
       setShowModal(false);
       fetchClientes();
       toast.success(isEdit ? 'Cliente actualizado correctamente' : 'Cliente creado correctamente', {
@@ -96,10 +78,7 @@ export default function Clientes() {
     });
     if (!ok) return;
     try {
-      const res = await fetch(`${API_BASE}/api/clientes/${id}`, {
-        method: 'DELETE', headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error('Error al eliminar');
+      await apiClient.delete(`/api/clientes/${id}`);
       fetchClientes();
       toast.success('Cliente eliminado', {
         icon: '🗑️', style: { background: '#10B981', color: 'white', borderRadius: '0.75rem' },

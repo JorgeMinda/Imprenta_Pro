@@ -1,7 +1,6 @@
 // src/components/NotificacionesPanel.tsx
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { API_BASE } from '../api/config';
+import { apiClient } from '../api/client';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, Package, Clock, AlertTriangle, CheckCheck, X } from 'lucide-react';
 
@@ -27,7 +26,6 @@ const POLL_MS    = 60_000; // refresca cada 60 seg
 const DIAS_ALERTA = 3;     // órdenes sin moverse en +3 días
 
 export default function NotificacionesPanel() {
-  const { token } = useAuth();
   const [open,  setOpen]  = useState(false);
   const [items, setItems] = useState<Notificacion[]>([]);
   const [leidas, setLeidas] = useState<Set<string>>(() => {
@@ -38,56 +36,47 @@ export default function NotificacionesPanel() {
 
   // ── Fetch alertas ─────────────────────────────────────────────────────────
   const fetchAlertas = useCallback(async () => {
-    if (!token) return;
-    const headers = { Authorization: `Bearer ${token}` };
-
     try {
-      const [stockRes, ordenesRes] = await Promise.all([
-        fetch(`${API_BASE}/api/inventario/alertas`,  { headers }),
-        fetch(`${API_BASE}/api/ordenes_trabajo`,      { headers }),
+      const [alertas, ordenes] = await Promise.all([
+        apiClient.get<AlertaStock[]>('/api/inventario/alertas'),
+        apiClient.get<any[]>('/api/ordenes_trabajo'),
       ]);
 
       const nuevas: Notificacion[] = [];
 
       // Stock bajo
-      if (stockRes.ok) {
-        const alertas: AlertaStock[] = await stockRes.json();
-        alertas.forEach(a => {
-          nuevas.push({
-            id:     `stock-${a.material_id}`,
-            tipo:   'stock',
-            titulo: `Stock bajo: ${a.nombre}`,
-            desc:   `${a.stock_actual} ${a.unidad} (mín: ${a.stock_minimo})`,
-            color:  'amber',
-            icon:   'package',
-          });
+      alertas.forEach(a => {
+        nuevas.push({
+          id:     `stock-${a.material_id}`,
+          tipo:   'stock',
+          titulo: `Stock bajo: ${a.nombre}`,
+          desc:   `${a.stock_actual} ${a.unidad} (mín: ${a.stock_minimo})`,
+          color:  'amber',
+          icon:   'package',
         });
-      }
+      });
 
       // Órdenes detenidas
-      if (ordenesRes.ok) {
-        const ordenes: any[] = await ordenesRes.json();
-        const ahora = Date.now();
-        ordenes.forEach(o => {
-          if (['entregada', 'terminada'].includes(o.estado?.toLowerCase())) return;
-          const inicio = new Date(o.fecha_inicio).getTime();
-          const dias   = Math.floor((ahora - inicio) / 86_400_000);
-          if (dias >= DIAS_ALERTA) {
-            nuevas.push({
-              id:     `orden-${o.id}`,
-              tipo:   'orden',
-              titulo: `Orden #${o.id} detenida`,
-              desc:   `En "${o.estado}" hace ${dias} día${dias !== 1 ? 's' : ''}`,
-              color:  dias >= 7 ? 'red' : 'orange',
-              icon:   'clock',
-            });
-          }
-        });
-      }
+      const ahora = Date.now();
+      ordenes.forEach(o => {
+        if (['entregada', 'terminada'].includes(o.estado?.toLowerCase())) return;
+        const inicio = new Date(o.fecha_inicio).getTime();
+        const dias   = Math.floor((ahora - inicio) / 86_400_000);
+        if (dias >= DIAS_ALERTA) {
+          nuevas.push({
+            id:     `orden-${o.id}`,
+            tipo:   'orden',
+            titulo: `Orden #${o.id} detenida`,
+            desc:   `En "${o.estado}" hace ${dias} día${dias !== 1 ? 's' : ''}`,
+            color:  dias >= 7 ? 'red' : 'orange',
+            icon:   'clock',
+          });
+        }
+      });
 
       setItems(nuevas);
     } catch { /* silencioso */ }
-  }, [token]);
+  }, []);
 
   // Polling
   useEffect(() => {

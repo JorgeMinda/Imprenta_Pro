@@ -1,7 +1,7 @@
 // src/pages/Usuarios.tsx — Panel de gestión de usuarios (solo admin)
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { API_BASE } from '../api/config';
+import { apiClient } from '../api/client';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Users, Plus, Search, Edit2, Trash2, Key, X,
@@ -44,7 +44,6 @@ function RolBadge({ rol }: { rol: keyof typeof ROL_CONFIG }) {
 function ModalUsuario({ usuario, onClose, onSave }: {
   usuario: Usuario | null; onClose: () => void; onSave: () => void;
 }) {
-  const { token } = useAuth();
   const [form, setForm] = useState({
     nombre:   usuario?.nombre  || '',
     email:    usuario?.email   || '',
@@ -62,21 +61,15 @@ function ModalUsuario({ usuario, onClose, onSave }: {
 
     setSaving(true);
     try {
-      const url    = usuario
-        ? `${API_BASE}/api/usuarios/${usuario.id}`
-        : `${API_BASE}/api/usuarios`;
-      const method = usuario ? 'PUT' : 'POST';
-      const body   = usuario
+      const body = usuario
         ? { nombre: form.nombre, email: form.email, rol: form.rol, cedula: form.cedula }
         : form;
 
-      const res  = await fetch(url, {
-        method,
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.msg || 'Error');
+      if (usuario) {
+        await apiClient.put(`/api/usuarios/${usuario.id}`, body);
+      } else {
+        await apiClient.post('/api/usuarios', body);
+      }
 
       toast.success(usuario ? 'Usuario actualizado' : 'Usuario creado ✅', { style: toastStyle });
       onSave();
@@ -168,7 +161,6 @@ function ModalUsuario({ usuario, onClose, onSave }: {
 
 // ── Modal cambiar contraseña ────────────────────────────────────────────────
 function ModalPassword({ usuario, onClose }: { usuario: Usuario; onClose: () => void }) {
-  const { token } = useAuth();
   const [form, setForm] = useState({ password_nuevo: '', confirmar: '' });
   const [saving, setSaving] = useState(false);
 
@@ -180,16 +172,7 @@ function ModalPassword({ usuario, onClose }: { usuario: Usuario; onClose: () => 
 
     setSaving(true);
     try {
-      const res = await fetch(
-        `${API_BASE}/api/usuarios/${usuario.id}/password`,
-        {
-          method: 'PATCH',
-          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ password_nuevo: form.password_nuevo }),
-        }
-      );
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.msg || 'Error');
+      await apiClient.patch(`/api/usuarios/${usuario.id}/password`, { password_nuevo: form.password_nuevo });
       toast.success('Contraseña actualizada ✅', { style: toastStyle });
       onClose();
     } catch (err: any) {
@@ -248,7 +231,7 @@ function ModalPassword({ usuario, onClose }: { usuario: Usuario; onClose: () => 
 
 // ── PÁGINA PRINCIPAL ────────────────────────────────────────────────────────
 export default function Usuarios() {
-  const { token, user: me } = useAuth();
+  const { user: me } = useAuth();
   const { confirmar } = useConfirm();
   const [usuarios, setUsuarios]   = useState<Usuario[]>([]);
   const [filtered, setFiltered]   = useState<Usuario[]>([]);
@@ -260,11 +243,7 @@ export default function Usuarios() {
   const fetchUsuarios = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/api/usuarios`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error('Sin acceso');
-      const data = await res.json();
+      const data = await apiClient.get<Usuario[]>('/api/usuarios');
       setUsuarios(data);
       setFiltered(data);
     } catch (err: any) {
@@ -274,7 +253,7 @@ export default function Usuarios() {
     }
   };
 
-  useEffect(() => { if (token) fetchUsuarios(); }, [token]);
+  useEffect(() => { fetchUsuarios(); }, []);
 
   useEffect(() => {
     const t = busqueda.toLowerCase();
@@ -298,12 +277,7 @@ export default function Usuarios() {
     });
     if (!ok) return;
     try {
-      const res = await fetch(`${API_BASE}/api/usuarios/${u.id}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.msg);
+      await apiClient.delete(`/api/usuarios/${u.id}`);
       toast.success('Usuario eliminado', { style: toastStyle });
       fetchUsuarios();
     } catch (err: any) {

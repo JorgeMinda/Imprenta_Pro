@@ -1,8 +1,7 @@
 // src/components/BusquedaGlobal.tsx
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import { API_BASE } from '../api/config';
+import { apiClient } from '../api/client';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search, X, Users, Package, ClipboardList,
@@ -37,7 +36,6 @@ function useDebounce<T>(value: T, delay: number): T {
 
 // ── Componente principal ─────────────────────────────────────────────────────
 export default function BusquedaGlobal() {
-  const { token } = useAuth();
   const navigate  = useNavigate();
 
   const [open,      setOpen]      = useState(false);
@@ -76,98 +74,84 @@ export default function BusquedaGlobal() {
   // ── Búsqueda ──────────────────────────────────────────────────────────────
   const buscar = useCallback(async (q: string) => {
     if (!q.trim() || q.length < 2) { setResultados([]); return; }
-    if (!token) return;
 
     setLoading(true);
-    const headers = { Authorization: `Bearer ${token}` };
 
     try {
-      const [cliRes, prodRes, ordRes, cotRes] = await Promise.all([
-        fetch(`${API_BASE}/api/clientes`,      { headers }),
-        fetch(`${API_BASE}/api/productos`,     { headers }),
-        fetch(`${API_BASE}/api/ordenes_trabajo`,{ headers }),
-        fetch(`${API_BASE}/api/cotizaciones`,  { headers }),
+      const [clientes, productos, ordenes, cotizaciones] = await Promise.all([
+        apiClient.get<any[]>('/api/clientes'),
+        apiClient.get<any[]>('/api/productos'),
+        apiClient.get<any[]>('/api/ordenes_trabajo'),
+        apiClient.get<any[]>('/api/cotizaciones'),
       ]);
 
       const qLow = q.toLowerCase();
       const resultados: Resultado[] = [];
 
       // Clientes
-      if (cliRes.ok) {
-        const clientes: any[] = await cliRes.json();
-        clientes
-          .filter(c =>
-            c.nombre?.toLowerCase().includes(qLow) ||
-            c.email?.toLowerCase().includes(qLow)  ||
-            c.telefono?.toLowerCase().includes(qLow)
-          )
-          .slice(0, 4)
-          .forEach(c => resultados.push({
-            id: c.id, tipo: 'cliente',
-            titulo:    c.nombre,
-            subtitulo: c.email || c.telefono || 'Sin contacto',
-            ruta:      '/clientes',
-          }));
-      }
+      clientes
+        .filter(c =>
+          c.nombre?.toLowerCase().includes(qLow) ||
+          c.email?.toLowerCase().includes(qLow)  ||
+          c.telefono?.toLowerCase().includes(qLow)
+        )
+        .slice(0, 4)
+        .forEach(c => resultados.push({
+          id: c.id, tipo: 'cliente',
+          titulo:    c.nombre,
+          subtitulo: c.email || c.telefono || 'Sin contacto',
+          ruta:      '/clientes',
+        }));
 
       // Productos
-      if (prodRes.ok) {
-        const productos: any[] = await prodRes.json();
-        productos
-          .filter(p =>
-            p.nombre?.toLowerCase().includes(qLow) ||
-            p.descripcion?.toLowerCase().includes(qLow)
-          )
-          .slice(0, 4)
-          .forEach(p => resultados.push({
-            id: p.id, tipo: 'producto',
-            titulo:    p.nombre,
-            subtitulo: p.precio_base ? `$${Number(p.precio_base).toFixed(2)}` : 'Sin precio',
-            ruta:      '/productos',
-          }));
-      }
+      productos
+        .filter(p =>
+          p.nombre?.toLowerCase().includes(qLow) ||
+          p.descripcion?.toLowerCase().includes(qLow)
+        )
+        .slice(0, 4)
+        .forEach(p => resultados.push({
+          id: p.id, tipo: 'producto',
+          titulo:    p.nombre,
+          subtitulo: p.precio_base ? `$${Number(p.precio_base).toFixed(2)}` : 'Sin precio',
+          ruta:      '/productos',
+        }));
 
       // Órdenes
-      if (ordRes.ok) {
-        const ordenes: any[] = await ordRes.json();
-        ordenes
-          .filter(o =>
-            String(o.id).includes(qLow)                 ||
-            o.estado?.toLowerCase().includes(qLow)      ||
-            o.cliente?.toLowerCase().includes(qLow)
-          )
-          .slice(0, 4)
-          .forEach(o => resultados.push({
-            id: o.id, tipo: 'orden',
-            titulo:    `Orden #${o.id}`,
-            subtitulo: `${o.estado} · ${o.cliente || 'Sin cliente'}`,
-            ruta:      '/ordenes',
-          }));
-      }
+      ordenes
+        .filter(o =>
+          String(o.id).includes(qLow)                 ||
+          o.estado?.toLowerCase().includes(qLow)      ||
+          o.cliente?.toLowerCase().includes(qLow)
+        )
+        .slice(0, 4)
+        .forEach(o => resultados.push({
+          id: o.id, tipo: 'orden',
+          titulo:    `Orden #${o.id}`,
+          subtitulo: `${o.estado} · ${o.cliente || 'Sin cliente'}`,
+          ruta:      '/ordenes',
+        }));
 
       // Cotizaciones
-      if (cotRes.ok) {
-        const cotizaciones: any[] = await cotRes.json();
-        cotizaciones
-          .filter(c =>
-            String(c.id).includes(qLow)              ||
-            c.cliente?.toLowerCase().includes(qLow)  ||
-            c.estado?.toLowerCase().includes(qLow)
-          )
-          .slice(0, 3)
-          .forEach(c => resultados.push({
-            id: c.id, tipo: 'cotizacion',
-            titulo:    `Cotización #${c.id}`,
-            subtitulo: `${c.cliente || 'Sin cliente'} · $${Number(c.total).toFixed(2)}`,
-            ruta:      '/cotizaciones',
-          }));
-      }
+      cotizaciones
+        .filter(c =>
+          String(c.id).includes(qLow)              ||
+          c.cliente?.toLowerCase().includes(qLow)  ||
+          c.estado?.toLowerCase().includes(qLow)
+        )
+        .slice(0, 3)
+        .forEach(c => resultados.push({
+          id: c.id, tipo: 'cotizacion',
+          titulo:    `Cotización #${c.id}`,
+          subtitulo: `${c.cliente || 'Sin cliente'} · $${Number(c.total).toFixed(2)}`,
+          ruta:      '/cotizaciones',
+        }));
 
       setResultados(resultados);
       setSelIdx(0);
     } catch { /* silencioso */ }
     finally { setLoading(false); }
-  }, [token]);
+  }, []);
 
   useEffect(() => { buscar(debouncedQuery); }, [debouncedQuery, buscar]);
 

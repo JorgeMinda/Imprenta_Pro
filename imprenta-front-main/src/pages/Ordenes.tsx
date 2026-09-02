@@ -1,7 +1,6 @@
 // src/pages/Ordenes.tsx
 import { useState, useEffect } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { API_BASE } from '../api/config';
+import { apiClient } from '../api/client';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   CheckCircle, Clock, Package, Filter, Search,
@@ -196,7 +195,6 @@ function InfoCard({ icon, label, value, highlight = false }: {
 
 // ─── Página principal ─────────────────────────────────────────────────────────
 export default function Ordenes() {
-  const { token } = useAuth();
   const [ordenes, setOrdenes]                 = useState<Orden[]>([]);
   const [filteredOrdenes, setFilteredOrdenes] = useState<Orden[]>([]);
   const [loading, setLoading]                 = useState(true);
@@ -208,11 +206,7 @@ export default function Ordenes() {
 
   const fetchOrdenes = async () => {
     try {
-      const res = await fetch(`${API_BASE}/api/ordenes_trabajo`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error('Error al conectar con el servidor');
-      const data = await res.json();
+      const data = await apiClient.get<Orden[]>('/api/ordenes_trabajo');
       setOrdenes(data || []);
       setFilteredOrdenes(data || []);
     } catch (err: any) {
@@ -222,7 +216,7 @@ export default function Ordenes() {
     }
   };
 
-  useEffect(() => { if (token) fetchOrdenes(); }, [token]);
+  useEffect(() => { fetchOrdenes(); }, []);
 
   useEffect(() => {
     let result = [...ordenes];
@@ -241,12 +235,7 @@ export default function Ordenes() {
 
   const handleCambiarEstado = async (id: number, nuevoEstado: string) => {
     const updatePromise = async () => {
-      const res = await fetch(`${API_BASE}/api/ordenes_trabajo/${id}`, {
-        method: 'PATCH',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ estado: nuevoEstado }),
-      });
-      if (!res.ok) throw new Error('No se pudo actualizar');
+      await apiClient.patch(`/api/ordenes_trabajo/${id}`, { estado: nuevoEstado });
       setOrdenes(prev => prev.map(o => o.id === id ? { ...o, estado: nuevoEstado } : o));
       setSelectedOrden(prev => prev?.id === id ? { ...prev, estado: nuevoEstado } : prev);
     };
@@ -261,14 +250,7 @@ export default function Ordenes() {
     setGenerandoPDF(true);
     const toastId = toast.loading('Generando factura PDF…', { style: toastStyle });
     try {
-      const res = await fetch(`${API_BASE}/api/facturas/orden/${ordenId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.msg || 'No se pudo generar la factura');
-      }
-      const blob = await res.blob();
+      const blob = await apiClient.blob(`/api/facturas/orden/${ordenId}`);
       const url  = window.URL.createObjectURL(blob);
       const a    = document.createElement('a');
       a.href = url; a.download = `factura-orden-${ordenId}.pdf`;

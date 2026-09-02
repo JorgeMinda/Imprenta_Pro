@@ -1,7 +1,8 @@
 // src/pages/Cotizaciones.tsx
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { API_BASE } from '../api/config';
+import { apiClient } from '../api/client';
+import type { Cliente, Producto, ItemForm } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle, XCircle, Trash2, Plus, X, Package, ChevronDown, ChevronUp } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -23,15 +24,6 @@ interface Cotizacion {
   estado:    string;
   fecha:     string;
   productos: ProductoDetalle[] | null; // json_agg del backend
-}
-
-interface Cliente  { id: number; nombre: string; }
-interface Producto { id: number; nombre: string; precio_base: number; }
-
-interface ItemForm {
-  producto_id:     string;
-  cantidad:        number;
-  precio_unitario: number;
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -90,7 +82,7 @@ function ProductosList({ productos }: { productos: ProductoDetalle[] | null }) {
 
 // ── PÁGINA PRINCIPAL ─────────────────────────────────────────────────────────
 export default function Cotizaciones() {
-  const { user, token } = useAuth();
+  const { user } = useAuth();
 
   const [cotizaciones, setCotizaciones] = useState<Cotizacion[]>([]);
   const [clientes,     setClientes]     = useState<Cliente[]>([]);
@@ -112,15 +104,14 @@ export default function Cotizaciones() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const headers = { Authorization: `Bearer ${token}` };
-      const [cotRes, cliRes, prodRes] = await Promise.all([
-        fetch(`${API_BASE}/api/cotizaciones`, { headers }),
-        fetch(`${API_BASE}/api/clientes`,     { headers }),
-        fetch(`${API_BASE}/api/productos`,    { headers }),
+      const [cotizacionesData, clientesData, productosData] = await Promise.all([
+        apiClient.get<Cotizacion[]>('/api/cotizaciones'),
+        apiClient.get<Cliente[]>('/api/clientes'),
+        apiClient.get<Producto[]>('/api/productos'),
       ]);
-      if (cotRes.ok)  setCotizaciones(await cotRes.json()  || []);
-      if (cliRes.ok)  setClientes(    await cliRes.json()  || []);
-      if (prodRes.ok) setProductos(   await prodRes.json() || []);
+      setCotizaciones(cotizacionesData || []);
+      setClientes(clientesData || []);
+      setProductos(productosData || []);
     } catch {
       toast.error('Error al cargar los datos', { style: toastStyle });
     } finally {
@@ -128,7 +119,7 @@ export default function Cotizaciones() {
     }
   };
 
-  useEffect(() => { if (token) fetchData(); }, [token]);
+  useEffect(() => { fetchData(); }, []);
 
   // ── Manejo del form multi-producto ───────────────────────────────────────
   const updateItem = (idx: number, field: keyof ItemForm, value: string | number) => {
@@ -156,19 +147,14 @@ export default function Cotizaciones() {
       return toast.error('Selecciona producto en todos los ítems', { style: toastStyle });
 
     try {
-      const res = await fetch(`${API_BASE}/api/cotizaciones`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          cliente_id: Number(clienteId),
-          productos: items.map(i => ({
-            producto_id:     Number(i.producto_id),
-            cantidad:        i.cantidad,
-            precio_unitario: i.precio_unitario,
-          })),
-        }),
+      await apiClient.post('/api/cotizaciones', {
+        cliente_id: Number(clienteId),
+        productos: items.map(i => ({
+          producto_id:     Number(i.producto_id),
+          cantidad:        i.cantidad,
+          precio_unitario: i.precio_unitario,
+        })),
       });
-      if (!res.ok) throw new Error('Error al crear cotización');
 
       setShowForm(false);
       setClienteId('');
@@ -190,11 +176,7 @@ export default function Cotizaciones() {
     });
     if (!ok) return;
     try {
-      const res = await fetch(`${API_BASE}/api/cotizaciones/${id}/aprobar`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      });
-      if (!res.ok) throw new Error('Error al aprobar');
+      await apiClient.post(`/api/cotizaciones/${id}/aprobar`);
       fetchData();
       toast.success('Cotización aprobada y orden creada 🎉', { style: toastStyle });
     } catch (err: any) {
@@ -211,11 +193,7 @@ export default function Cotizaciones() {
     });
     if (!ok) return;
     try {
-      const res = await fetch(`${API_BASE}/api/cotizaciones/${id}/rechazar`, {
-        method: 'PATCH',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      });
-      if (!res.ok) throw new Error('Error al rechazar');
+      await apiClient.patch(`/api/cotizaciones/${id}/rechazar`);
       fetchData();
       toast.success('Cotización rechazada 🚫', { style: toastStyle });
     } catch (err: any) {
@@ -232,11 +210,7 @@ export default function Cotizaciones() {
     });
     if (!ok) return;
     try {
-      const res = await fetch(`${API_BASE}/api/cotizaciones/${id}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error('Error al eliminar');
+      await apiClient.delete(`/api/cotizaciones/${id}`);
       setCotizaciones(prev => prev.filter(c => c.id !== id));
       toast.success('Cotización eliminada 🗑️', { style: toastStyle });
     } catch (err: any) {

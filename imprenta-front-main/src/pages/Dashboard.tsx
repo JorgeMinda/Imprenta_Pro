@@ -2,7 +2,8 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
-import { API_BASE } from '../api/config';
+import { apiClient } from '../api/client';
+import type { ProductoAlert } from '../types';
 import { Link } from 'react-router-dom';
 import {
   Package, Clock, CheckCircle, DollarSign, ArrowRight, AlertTriangle,
@@ -24,8 +25,6 @@ interface Stats {
   ventas_mensuales: { mes: string; ventas: number; cotizaciones: number }[];
 }
 
-interface ProductoAlert { id: number; nombre: string; stock: number; }
-
 const toastStyle = {
   background: '#1F2937', color: 'white',
   border: '1px solid rgba(255,255,255,0.1)', borderRadius: '0.75rem',
@@ -38,7 +37,7 @@ const tooltipStyle = {
 };
 
 export default function Dashboard() {
-  const { user, token } = useAuth();
+  const { user } = useAuth();
 
   const [stats, setStats] = useState<Stats>({
     diseno: 0, en_proceso: 0, terminadas: 0, entregadas: 0,
@@ -52,29 +51,22 @@ export default function Dashboard() {
     if (manual) setRefreshing(true);
     else setLoading(true);
     try {
-      const headers = { Authorization: `Bearer ${token}` };
-      const [statsRes, productosRes] = await Promise.all([
-        fetch(`${API_BASE}/api/stats/dashboard`, { headers }),
-        fetch(`${API_BASE}/api/productos`,       { headers }),
+      const [statsData, productos] = await Promise.all([
+        apiClient.get<{ diseno?: number; pendientes?: number; en_proceso?: number; terminadas?: number; entregadas?: number; ganancias?: number; total_clientes?: number; ventas_mensuales?: Stats['ventas_mensuales'] }>('/api/stats/dashboard'),
+        apiClient.get<ProductoAlert[]>('/api/productos'),
       ]);
 
-      if (statsRes.ok) {
-        const data = await statsRes.json();
-        setStats({
-          diseno:          data.diseno          ?? data.pendientes ?? 0,
-          en_proceso:      data.en_proceso      ?? 0,
-          terminadas:      data.terminadas      ?? 0,
-          entregadas:      data.entregadas      ?? 0,
-          ganancias:       data.ganancias       ?? 0,
-          total_clientes:  data.total_clientes  ?? 0,
-          ventas_mensuales: data.ventas_mensuales ?? [],
-        });
-      }
+      setStats({
+        diseno:          statsData.diseno          ?? statsData.pendientes ?? 0,
+        en_proceso:      statsData.en_proceso      ?? 0,
+        terminadas:      statsData.terminadas      ?? 0,
+        entregadas:      statsData.entregadas      ?? 0,
+        ganancias:       statsData.ganancias       ?? 0,
+        total_clientes:  statsData.total_clientes  ?? 0,
+        ventas_mensuales: statsData.ventas_mensuales ?? [],
+      });
 
-      if (productosRes.ok) {
-        const productos = await productosRes.json();
-        setAlertasStock(productos.filter((p: ProductoAlert) => p.stock !== undefined && p.stock <= 5));
-      }
+      setAlertasStock(productos.filter((p: ProductoAlert) => p.stock !== undefined && p.stock <= 5));
 
       if (!manual && user?.nombre && !sessionStorage.getItem('welcomeToastShown')) {
         toast(`¡Bienvenido de nuevo, ${user.nombre}!`, { icon: '👋', style: toastStyle, duration: 3000 });
@@ -89,7 +81,7 @@ export default function Dashboard() {
     }
   };
 
-  useEffect(() => { if (token) fetchData(); }, [token]);
+  useEffect(() => { fetchData(); }, []);
 
   // ── KPIs principales (fila 1) ─────────────────────────────────────────────
   const kpisPrincipales = [

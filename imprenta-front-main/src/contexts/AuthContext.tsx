@@ -1,14 +1,7 @@
 // src/contexts/AuthContext.tsx
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { API_BASE } from '../api/config';
-
-interface User {
-  id?: string;
-  nombre: string;
-  email: string;
-  rol: string;
-  [key: string]: any;
-}
+import { apiClient } from '../api/client';
+import type { User } from '../types';
 
 interface AuthContextType {
   user: User | null;
@@ -51,21 +44,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // ── Login ─────────────────────────────────────────────────────────────────
   const login = async (email: string, password: string) => {
     try {
-      const res  = await fetch(`${API_BASE}/api/auth/login`, {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ email, password }),
-      });
-      const data = await res.json();
-      if (!res.ok) return { ok: false, msg: data.msg || 'Credenciales inválidas' };
-
+      const data = await apiClient.post<{ token: string; user: User }>(
+        '/api/auth/login',
+        { email, password },
+      );
       localStorage.setItem('token', data.token);
       localStorage.setItem('user',  JSON.stringify(data.user));
       setToken(data.token);
       setUser(data.user);
       return { ok: true };
-    } catch {
-      return { ok: false, msg: 'No se pudo conectar al servidor' };
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Credenciales inválidas';
+      return { ok: false, msg };
     }
   };
 

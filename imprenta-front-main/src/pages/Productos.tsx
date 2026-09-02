@@ -1,23 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { API_BASE } from '../api/config';
+import { apiClient } from '../api/client';
+import type { Producto } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Edit, Trash2, Search, AlertCircle, X, RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Pagination, { usePagination } from '../components/Pagination';
 import { useConfirm } from '../components/ConfirmModal';
 
-interface Producto {
-  id: number;
-  nombre: string;
-  descripcion: string;
-  precio_base: number;
-  stock: number;
-  creado_en: string;
-}
-
 export default function Productos() {
-  const { token } = useAuth();
   const { confirmar } = useConfirm();
 
   const [productos, setProductos] = useState<Producto[]>([]);
@@ -37,11 +27,7 @@ export default function Productos() {
     if (isManualRefresh) toastId = toast.loading('Actualizando catálogo...', { style: toastStyle });
     else setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/api/productos`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error('Error al cargar productos');
-      const data = await res.json();
+      const data = await apiClient.get<Producto[]>('/api/productos');
       setProductos(data || []);
       setFilteredProductos(data || []);
       setError(null);
@@ -53,9 +39,9 @@ export default function Productos() {
     } finally {
       if (!isManualRefresh) setLoading(false);
     }
-  }, [token]);
+  }, []);
 
-  useEffect(() => { if (token) fetchProductos(false); }, [token, fetchProductos]);
+  useEffect(() => { fetchProductos(false); }, [fetchProductos]);
 
   useEffect(() => {
     if (busqueda.trim() === '') { setFilteredProductos(productos); return; }
@@ -76,15 +62,11 @@ export default function Productos() {
     e.preventDefault();
     const toastId = toast.loading(isEdit ? 'Guardando cambios...' : 'Creando producto...', { style: toastStyle });
     try {
-      const url = isEdit && currentProducto
-        ? `${API_BASE}/api/productos/${currentProducto.id}`
-        : `${API_BASE}/api/productos`;
-      const res = await fetch(url, {
-        method: isEdit ? 'PUT' : 'POST',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
-      if (!res.ok) { const err = await res.json(); throw new Error(err.msg || 'Error'); }
+      if (isEdit && currentProducto) {
+        await apiClient.put(`/api/productos/${currentProducto.id}`, formData);
+      } else {
+        await apiClient.post('/api/productos', formData);
+      }
       toast.success(isEdit ? 'Producto actualizado' : 'Producto creado con éxito', { id: toastId, style: toastStyle });
       setShowModal(false);
       fetchProductos(false);
@@ -101,10 +83,7 @@ export default function Productos() {
     if (!ok) return;
     const toastId = toast.loading('Eliminando producto...', { style: toastStyle });
     try {
-      const res = await fetch(`${API_BASE}/api/productos/${id}`, {
-        method: 'DELETE', headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error('Error al eliminar');
+      await apiClient.delete(`/api/productos/${id}`);
       toast.success('Producto eliminado', { id: toastId, style: toastStyle });
       fetchProductos(false);
     } catch (err: any) { toast.error(err.message, { id: toastId, style: toastStyle }); }

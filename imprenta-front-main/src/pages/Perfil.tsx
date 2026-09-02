@@ -1,7 +1,7 @@
 // src/pages/Perfil.tsx
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { API_BASE } from '../api/config';
+import { apiClient } from '../api/client';
 import { useConfirm } from '../components/ConfirmModal';
 import { motion } from 'framer-motion';
 import { User, Mail, Lock, Save, Shield, Briefcase, Eye, EyeOff } from 'lucide-react';
@@ -54,7 +54,7 @@ function InputField({ label, icon: Icon, type = 'text', value, onChange, placeho
 }
 
 export default function Perfil() {
-  const { user, token } = useAuth();
+  const { user } = useAuth();
   const { confirmar }   = useConfirm();
 
   const rolCfg = ROL_CFG[(user?.rol as keyof typeof ROL_CFG) ?? 'empleado'];
@@ -85,12 +85,7 @@ export default function Perfil() {
 
     setSavingDatos(true);
     try {
-      const res = await fetch(`${API_BASE}/api/usuarios/${user?.id}`, {
-        method:  'PUT',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ nombre: nombre.trim(), email: email.trim() }),
-      });
-      if (!res.ok) throw new Error((await res.json()).msg || 'Error al guardar');
+      await apiClient.put(`/api/usuarios/${user?.id}`, { nombre: nombre.trim(), email: email.trim() });
       toast.success('Datos actualizados correctamente', { style: toastStyle });
     } catch (err: any) {
       toast.error(err.message, { style: toastStyle });
@@ -118,12 +113,7 @@ export default function Perfil() {
 
     setSavingPass(true);
     try {
-      const res = await fetch(`${API_BASE}/api/usuarios/${user?.id}/password`, {
-        method:  'PATCH',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ password_actual: passActual, password_nuevo: passNueva }),
-      });
-      if (!res.ok) throw new Error((await res.json()).msg || 'Error al cambiar contraseña');
+      await apiClient.patch(`/api/usuarios/${user?.id}/password`, { password_actual: passActual, password_nuevo: passNueva });
       toast.success('Contraseña actualizada correctamente', { style: toastStyle });
       setPassActual(''); setPassNueva(''); setPassConfirm('');
     } catch (err: any) {

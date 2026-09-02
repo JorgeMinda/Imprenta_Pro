@@ -1,7 +1,6 @@
 // src/pages/Reportes.tsx — datos reales del backend
 import { useEffect, useState, useCallback } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { API_BASE } from '../api/config';
+import { apiClient } from '../api/client';
 import { motion } from 'framer-motion';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer,
@@ -64,7 +63,6 @@ function ChartSkeleton({ span = '' }: { span?: string }) {
 }
 
 export default function Reportes() {
-  const { token } = useAuth();
   const [loading,  setLoading]  = useState(true);
   const [error,    setError]    = useState<string | null>(null);
   const [data,     setData]     = useState<ReportesData | null>(null);
@@ -75,11 +73,7 @@ export default function Reportes() {
     else setLoading(true);
 
     try {
-      const res = await fetch(`${API_BASE}/api/stats/reportes`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error('Error al cargar reportes');
-      const json: ReportesData = await res.json();
+      const json = await apiClient.get<ReportesData>('/api/stats/reportes');
       setData(json);
       setError(null);
       if (manual) toast.success('Reportes actualizados', { id: toastId, style: toastStyle });
@@ -90,9 +84,9 @@ export default function Reportes() {
     } finally {
       if (!manual) setLoading(false);
     }
-  }, [token]);
+  }, []);
 
-  useEffect(() => { if (token) fetchReportes(false); }, [token, fetchReportes]);
+  useEffect(() => { fetchReportes(false); }, [fetchReportes]);
 
   if (loading) return (
     <div className="space-y-6">

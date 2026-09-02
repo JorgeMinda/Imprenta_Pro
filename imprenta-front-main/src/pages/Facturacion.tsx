@@ -1,7 +1,7 @@
 // src/pages/Facturacion.tsx
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { API_BASE } from '../api/config';
+import { apiClient } from '../api/client';
 import { useConfirm } from '../components/ConfirmModal';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -59,7 +59,6 @@ function ModalFactura({ cotizaciones, onClose, onSave }: {
   onClose: () => void;
   onSave:  () => void;
 }) {
-  const { token } = useAuth();
   const [form, setForm] = useState({
     cotizacion_id:       '',
     impuesto_porcentaje: 15,
@@ -78,17 +77,11 @@ function ModalFactura({ cotizaciones, onClose, onSave }: {
 
     setSaving(true);
     try {
-      const res  = await fetch(`${API_BASE}/api/facturacion`, {
-        method:  'POST',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body:    JSON.stringify({
-          cotizacion_id:       Number(form.cotizacion_id),
-          impuesto_porcentaje: form.impuesto_porcentaje,
-          observaciones:       form.observaciones || null,
-        }),
+      const data = await apiClient.post<{ factura: { numero: string } }>('/api/facturacion', {
+        cotizacion_id:       Number(form.cotizacion_id),
+        impuesto_porcentaje: form.impuesto_porcentaje,
+        observaciones:       form.observaciones || null,
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.msg || 'Error al crear factura');
       toast.success(`Factura ${data.factura.numero} creada ✅`, { style: toastStyle });
       onSave();
       onClose();
@@ -195,7 +188,7 @@ function ModalFactura({ cotizaciones, onClose, onSave }: {
 
 // ── PÁGINA PRINCIPAL ──────────────────────────────────────────────────────────
 export default function Facturacion() {
-  const { token, user } = useAuth();
+  const { user } = useAuth();
   const { confirmar }   = useConfirm();
 
   const [facturas,      setFacturas]      = useState<Factura[]>([]);
@@ -209,30 +202,25 @@ export default function Facturacion() {
   const isAdmin           = user?.rol === 'admin';
    
   const fetchData = useCallback(async () => {
-    if (!token) return;
     setLoading(true);
     try {
-      const headers = { Authorization: `Bearer ${token}` };
-      const [facRes, cotRes] = await Promise.all([
-        fetch(`${API_BASE}/api/facturacion`,   { headers }),
-        fetch(`${API_BASE}/api/cotizaciones`,  { headers }),
+      const [facturasData, cotizacionesData] = await Promise.all([
+        apiClient.get<Factura[]>('/api/facturacion'),
+        apiClient.get<Cotizacion[]>('/api/cotizaciones'),
       ]);
-      if (facRes.ok) setFacturas(await facRes.json());
-      if (cotRes.ok) {
-        const cots: any[] = await cotRes.json();
-        // Solo cotizaciones aprobadas sin factura activa
-        setCotizaciones(
-          cots
-            .filter(c => c.estado === 'aprobada')
-            .map(c => ({ id: c.id, cliente: c.cliente, total: c.total }))
-        );
-      }
+      setFacturas(facturasData);
+      const cots: any[] = cotizacionesData;
+      setCotizaciones(
+        cots
+          .filter(c => c.estado === 'aprobada')
+          .map(c => ({ id: c.id, cliente: c.cliente, total: c.total }))
+      );
     } catch {
       toast.error('Error al cargar facturas', { style: toastStyle });
     } finally {
       setLoading(false);
     }
-  }, [token]);
+  }, []);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
@@ -256,13 +244,7 @@ export default function Facturacion() {
     if (!ok) return;
 
     try {
-      const res = await fetch(`${API_BASE}/api/facturacion/${f.id}`, {
-        method:  'PATCH',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ estado }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.msg);
+      await apiClient.patch(`/api/facturacion/${f.id}`, { estado });
       toast.success(estado === 'pagada' ? 'Factura marcada como pagada ✅' : 'Factura anulada', { style: toastStyle });
       fetchData();
     } catch (err: any) {
@@ -279,12 +261,7 @@ export default function Facturacion() {
     });
     if (!ok) return;
     try {
-      const res = await fetch(`${API_BASE}/api/facturacion/${f.id}`, {
-        method:  'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.msg);
+      await apiClient.delete(`/api/facturacion/${f.id}`);
       toast.success('Factura eliminada', { style: toastStyle });
       fetchData();
     } catch (err: any) {
