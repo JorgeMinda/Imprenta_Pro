@@ -133,7 +133,7 @@ export default function Perfil() {
 
       {/* Tarjeta de identidad */}
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
-        className="bg-gray-900/40 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-xl">
+        className="glass p-6 shadow-xl">
         <div className="flex items-center gap-5">
           {/* Avatar grande */}
           <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-indigo-500 to-blue-600
@@ -153,7 +153,7 @@ export default function Perfil() {
 
       {/* Datos personales */}
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
-        className="bg-gray-900/40 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-xl">
+        className="glass p-6 shadow-xl">
         <h3 className="text-base font-semibold text-white mb-5 flex items-center gap-2">
           <User className="w-4 h-4 text-indigo-400" /> Datos personales
         </h3>
@@ -176,7 +176,7 @@ export default function Perfil() {
 
       {/* Cambiar contraseña */}
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-        className="bg-gray-900/40 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-xl">
+        className="glass p-6 shadow-xl">
         <h3 className="text-base font-semibold text-white mb-5 flex items-center gap-2">
           <Lock className="w-4 h-4 text-amber-400" /> Cambiar contraseña
         </h3>

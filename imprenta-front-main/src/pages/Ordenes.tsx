@@ -71,17 +71,17 @@ function ModalDetalle({
       <motion.div
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
         onClick={onClose}
-        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+        className="absolute inset-0 glass-overlay"
       />
       <motion.div
         initial={{ scale: 0.9, opacity: 0, y: 40 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.9, opacity: 0, y: 40 }}
         transition={{ type: 'spring', stiffness: 300, damping: 28 }}
-        className="relative w-full max-w-2xl bg-gray-900 border border-white/10 rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
+        className="relative w-full max-w-2xl glass-float overflow-hidden max-h-[90vh] overflow-y-auto"
       >
         {/* Header */}
-        <div className="flex justify-between items-center p-6 border-b border-gray-800 bg-gray-900/80 backdrop-blur sticky top-0 z-10">
+        <div className="flex justify-between items-center p-6 border-b border-gray-800 glass-nav sticky top-0 z-10">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-indigo-500/20 rounded-lg border border-indigo-500/30">
               <FileText className="w-5 h-5 text-indigo-400" />
@@ -300,10 +300,10 @@ export default function Ordenes() {
               placeholder="Buscar por cliente, ID u orden..."
               value={busqueda}
               onChange={e => setBusqueda(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-gray-900/40 border border-white/10 rounded-xl text-white focus:border-indigo-500 outline-none transition-all"
+              className="w-full pl-10 pr-4 py-2 glass-input"
             />
           </div>
-          <div className="flex items-center gap-2 bg-gray-900/40 border border-white/10 rounded-xl px-3 py-2">
+          <div className="flex items-center gap-2 glass px-3 py-2">
             <Filter className="w-4 h-4 text-gray-400" />
             <select
               value={filtroEstado}
@@ -322,7 +322,7 @@ export default function Ordenes() {
       {/* Tabla */}
       <motion.div
         initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-        className="bg-gray-900/40 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden shadow-2xl"
+        className="glass-strong overflow-hidden shadow-2xl"
       >
         <div className="overflow-x-auto">
           <table className="w-full text-left">

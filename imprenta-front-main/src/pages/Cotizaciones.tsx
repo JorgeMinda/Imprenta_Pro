@@ -244,7 +244,7 @@ export default function Cotizaciones() {
           <motion.div
             initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -16 }}
-            className="bg-gray-900/40 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-2xl"
+            className="glass p-6 shadow-2xl"
           >
             <h2 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
               <span className="w-2 h-6 bg-indigo-500 rounded-full inline-block" />
@@ -336,7 +336,7 @@ export default function Cotizaciones() {
 
       {/* Tabla */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-        className="bg-gray-900/40 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden shadow-2xl"
+            className="glass-strong overflow-hidden shadow-2xl"
       >
         <div className="overflow-x-auto">
           <table className="w-full text-left">

@@ -91,12 +91,12 @@ function ModalMaterial({ item, onClose, onSave }: {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-        onClick={onClose} className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+        onClick={onClose} className="absolute inset-0 glass-overlay" />
       <motion.div initial={{ scale: 0.9, y: 30, opacity: 0 }} animate={{ scale: 1, y: 0, opacity: 1 }}
         exit={{ scale: 0.9, y: 30, opacity: 0 }} transition={{ type: 'spring', stiffness: 300, damping: 28 }}
-        className="relative w-full max-w-lg bg-gray-900 border border-white/10 rounded-2xl shadow-2xl overflow-hidden"
+        className="relative w-full max-w-lg glass-float overflow-hidden"
       >
-        <div className="flex justify-between items-center p-6 border-b border-gray-800 sticky top-0 bg-gray-900/90 backdrop-blur">
+        <div className="flex justify-between items-center p-6 border-b border-gray-800 glass-nav sticky top-0 z-10">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-indigo-500/20 rounded-lg border border-indigo-500/30">
               <Layers className="w-5 h-5 text-indigo-400" />
@@ -186,10 +186,10 @@ function ModalMovimiento({ item, tipo, onClose, onSave }: {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-        onClick={onClose} className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+        onClick={onClose} className="absolute inset-0 glass-overlay" />
       <motion.div initial={{ scale: 0.9, y: 30, opacity: 0 }} animate={{ scale: 1, y: 0, opacity: 1 }}
         exit={{ scale: 0.9, y: 30, opacity: 0 }} transition={{ type: 'spring', stiffness: 300, damping: 28 }}
-        className="relative w-full max-w-sm bg-gray-900 border border-white/10 rounded-2xl shadow-2xl overflow-hidden"
+        className="relative w-full max-w-sm glass-float overflow-hidden"
       >
         <div className={`p-6 border-b border-gray-800 ${isEntrada ? 'bg-emerald-500/5' : 'bg-red-500/5'}`}>
           <div className="flex items-center justify-between">
@@ -273,10 +273,10 @@ function ModalHistorial({ item, onClose }: { item: ItemInventario; onClose: () =
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-        onClick={onClose} className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+        onClick={onClose} className="absolute inset-0 glass-overlay" />
       <motion.div initial={{ scale: 0.9, y: 30, opacity: 0 }} animate={{ scale: 1, y: 0, opacity: 1 }}
         exit={{ scale: 0.9, y: 30, opacity: 0 }} transition={{ type: 'spring', stiffness: 300, damping: 28 }}
-        className="relative w-full max-w-2xl bg-gray-900 border border-white/10 rounded-2xl shadow-2xl overflow-hidden max-h-[80vh] flex flex-col"
+        className="relative w-full max-w-2xl glass-float overflow-hidden max-h-[80vh] flex flex-col"
       >
         <div className="flex justify-between items-center p-6 border-b border-gray-800">
           <div className="flex items-center gap-3">
@@ -442,7 +442,7 @@ export default function Inventario() {
         ].map((k, i) => (
           <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.08 }}
-            className="bg-gray-900/40 backdrop-blur-xl border border-white/10 rounded-2xl p-5 flex items-center gap-4"
+            className="glass p-5 flex items-center gap-4"
           >
             <div className="p-2.5 rounded-xl" style={{ background: `${k.color}20`, border: `1px solid ${k.color}30` }}>
               <k.icon className="w-5 h-5" style={{ color: k.color }} />
@@ -475,7 +475,7 @@ export default function Inventario() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
           <input type="text" placeholder="Buscar material..."
             value={busqueda} onChange={e => setBusqueda(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-gray-900/40 border border-white/10 rounded-xl text-white focus:border-indigo-500 outline-none transition-all"
+            className="w-full pl-10 pr-4 py-2 glass-input"
           />
         </div>
         <button onClick={() => setSoloAlertas(v => !v)}
@@ -491,7 +491,7 @@ export default function Inventario() {
 
       {/* Tabla */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-        className="bg-gray-900/40 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden shadow-2xl"
+        className="glass-strong overflow-hidden shadow-2xl"
       >
         <div className="overflow-x-auto">
           <table className="w-full text-left">

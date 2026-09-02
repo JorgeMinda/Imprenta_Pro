@@ -168,7 +168,7 @@ export default function Dashboard() {
           <motion.div key={k.id} initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: i * 0.08 }}
             whileHover={{ scale: 1.03, y: -4 }}
-            className="relative bg-gray-900/40 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-2xl overflow-hidden group cursor-default"
+            className="relative glass p-6 shadow-2xl overflow-hidden group cursor-default"
           >
             <div className="absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity duration-500"
               style={{ background: `radial-gradient(circle at center, ${k.color}, transparent 70%)` }} />
@@ -189,7 +189,7 @@ export default function Dashboard() {
         {kpisSecundarios.map((k, i) => (
           <motion.div key={k.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 + i * 0.07 }}
-            className="bg-gray-900/40 backdrop-blur-xl border border-white/10 rounded-2xl p-5 flex items-center gap-4"
+            className="glass p-5 flex items-center gap-4"
           >
             <div className="p-3 rounded-xl shrink-0"
               style={{ background: `${k.color}20`, border: `1px solid ${k.color}30` }}>
@@ -207,7 +207,7 @@ export default function Dashboard() {
       {/* Gráfica ventas mensuales */}
       {stats.ventas_mensuales.length > 0 && (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
-          className="bg-gray-900/40 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-2xl">
+          className="glass p-6 shadow-2xl">
           <div className="flex items-center gap-3 mb-6">
             <div className="p-2 bg-indigo-500/20 border border-indigo-500/30 rounded-lg">
               <TrendingUp className="w-5 h-5 text-indigo-400" />

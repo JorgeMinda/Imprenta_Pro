@@ -123,7 +123,7 @@ export default function Productos() {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input type="text" placeholder="Buscar producto..." value={busqueda}
               onChange={e => setBusqueda(e.target.value)}
-              className="w-full pl-9 pr-4 py-2.5 bg-gray-900/40 border border-white/10 rounded-xl text-sm text-white placeholder-gray-400 focus:outline-none focus:border-indigo-500 transition-all shadow-lg" />
+              className="w-full pl-9 pr-4 py-2.5 glass-input text-sm shadow-lg" />
           </div>
           <div className="flex gap-3">
             <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
@@ -141,7 +141,7 @@ export default function Productos() {
       </div>
 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-        className="bg-gray-900/40 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
+        className="glass-strong overflow-hidden shadow-2xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
@@ -198,10 +198,10 @@ export default function Productos() {
         {showModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              onClick={() => setShowModal(false)} className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+              onClick={() => setShowModal(false)} className="absolute inset-0 glass-overlay" />
             <motion.div initial={{ scale: 0.95, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 20 }}
-              className="relative w-full max-w-lg bg-gray-900 border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
+              className="relative w-full max-w-lg glass-float overflow-hidden">
               <div className="flex justify-between items-center p-6 border-b border-gray-800">
                 <h3 className="text-xl font-bold text-white">{isEdit ? 'Editar Producto' : 'Nuevo Producto'}</h3>
                 <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-white p-1 rounded-lg hover:bg-gray-800">

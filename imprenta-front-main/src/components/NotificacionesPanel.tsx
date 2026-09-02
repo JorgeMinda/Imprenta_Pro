@@ -163,8 +163,7 @@ export default function NotificacionesPanel() {
             exit={{   opacity: 0, y: -8, scale: 0.95 }}
             transition={{ type: 'spring', stiffness: 300, damping: 25 }}
             className="absolute right-0 top-full mt-2 w-80 sm:w-96
-              bg-gray-900/95 backdrop-blur-xl border border-white/10 rounded-2xl
-              shadow-2xl shadow-black/50 z-50 overflow-hidden"
+              glass-float z-50 overflow-hidden"
           >
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-white/5">

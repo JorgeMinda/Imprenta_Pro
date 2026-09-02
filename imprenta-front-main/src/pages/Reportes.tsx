@@ -39,7 +39,7 @@ function ChartCard({ title, icon, color, children, span = '' }: {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-      className={`bg-gray-900/40 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-2xl ${span}`}
+      className={`glass p-6 shadow-2xl ${span}`}
     >
       <div className="flex items-center gap-3 mb-6">
         <div className="p-2 rounded-lg border" style={{ background: `${color}20`, borderColor: `${color}30` }}>
@@ -55,7 +55,7 @@ function ChartCard({ title, icon, color, children, span = '' }: {
 // Skeleton para gráficos
 function ChartSkeleton({ span = '' }: { span?: string }) {
   return (
-    <div className={`bg-gray-900/40 border border-white/10 rounded-2xl p-6 ${span}`}>
+    <div className={`glass p-6 ${span}`}>
       <div className="h-6 w-48 bg-gray-700/60 rounded animate-pulse mb-6" />
       <div className="h-[280px] bg-gray-800/40 rounded-xl animate-pulse" />
     </div>

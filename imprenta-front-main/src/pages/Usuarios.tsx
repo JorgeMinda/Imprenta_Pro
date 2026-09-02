@@ -84,10 +84,10 @@ function ModalUsuario({ usuario, onClose, onSave }: {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-        onClick={onClose} className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+        onClick={onClose} className="absolute inset-0 glass-overlay" />
       <motion.div initial={{ scale: 0.9, y: 30, opacity: 0 }} animate={{ scale: 1, y: 0, opacity: 1 }}
         exit={{ scale: 0.9, y: 30, opacity: 0 }} transition={{ type: 'spring', stiffness: 300, damping: 28 }}
-        className="relative w-full max-w-lg bg-gray-900 border border-white/10 rounded-2xl shadow-2xl"
+        className="relative w-full max-w-lg glass-float"
       >
         <div className="flex justify-between items-center p-6 border-b border-gray-800">
           <div className="flex items-center gap-3">
@@ -185,10 +185,10 @@ function ModalPassword({ usuario, onClose }: { usuario: Usuario; onClose: () => 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-        onClick={onClose} className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+        onClick={onClose} className="absolute inset-0 glass-overlay" />
       <motion.div initial={{ scale: 0.9, y: 30, opacity: 0 }} animate={{ scale: 1, y: 0, opacity: 1 }}
         exit={{ scale: 0.9, y: 30, opacity: 0 }} transition={{ type: 'spring', stiffness: 300, damping: 28 }}
-        className="relative w-full max-w-sm bg-gray-900 border border-white/10 rounded-2xl shadow-2xl p-6 space-y-4"
+        className="relative w-full max-w-sm glass-float p-6 space-y-4"
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -317,7 +317,7 @@ export default function Usuarios() {
           const count = usuarios.filter(u => u.rol === rol).length;
           return (
             <motion.div key={rol} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-              className="bg-gray-900/40 backdrop-blur-xl border border-white/10 rounded-2xl p-5 flex items-center gap-4"
+              className="glass p-5 flex items-center gap-4"
             >
               <div className={`p-2.5 rounded-xl border ${cfg.color}`}>
                 <cfg.icon className="w-5 h-5" />
@@ -336,13 +336,13 @@ export default function Usuarios() {
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
         <input type="text" placeholder="Buscar por nombre, email o rol..."
           value={busqueda} onChange={e => setBusqueda(e.target.value)}
-          className="w-full pl-10 pr-4 py-2 bg-gray-900/40 border border-white/10 rounded-xl text-white focus:border-indigo-500 outline-none transition-all"
+          className="w-full pl-10 pr-4 py-2 glass-input"
         />
       </div>
 
       {/* Tabla */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-        className="bg-gray-900/40 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden shadow-2xl"
+        className="glass-strong overflow-hidden shadow-2xl"
       >
         <div className="overflow-x-auto">
           <table className="w-full text-left">

@@ -222,7 +222,7 @@ export default function BusquedaGlobal() {
             <motion.div
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => setOpen(false)}
-              className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50"
+              className="fixed inset-0 glass-overlay z-50"
             />
 
             {/* Panel */}
@@ -232,8 +232,7 @@ export default function BusquedaGlobal() {
               exit={{   opacity: 0, y: -20,  scale: 0.97 }}
               transition={{ type: 'spring', stiffness: 350, damping: 28 }}
               className="fixed top-[8vh] left-1/2 -translate-x-1/2 w-full max-w-xl z-50
-                bg-gray-900/95 backdrop-blur-xl border border-white/10 rounded-2xl
-                shadow-2xl shadow-black/60 overflow-hidden"
+                glass-float overflow-hidden"
             >
               {/* Input */}
               <div className="flex items-center gap-3 px-4 py-3.5 border-b border-white/5">

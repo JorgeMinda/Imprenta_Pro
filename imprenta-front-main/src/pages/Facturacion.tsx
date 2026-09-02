@@ -95,13 +95,13 @@ function ModalFactura({ cotizaciones, onClose, onSave }: {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-        onClick={onClose} className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+        onClick={onClose} className="absolute inset-0 glass-overlay" />
       <motion.div
         initial={{ scale: 0.9, y: 30, opacity: 0 }}
         animate={{ scale: 1,   y: 0,  opacity: 1 }}
         exit={{   scale: 0.9, y: 30, opacity: 0 }}
         transition={{ type: 'spring', stiffness: 300, damping: 28 }}
-        className="relative w-full max-w-md bg-gray-900 border border-white/10 rounded-2xl shadow-2xl overflow-hidden"
+        className="relative w-full max-w-md glass-float overflow-hidden"
       >
         <div className="flex items-center justify-between p-6 border-b border-gray-800">
           <div className="flex items-center gap-3">
@@ -309,7 +309,7 @@ export default function Facturacion() {
         ].map((k, i) => (
           <motion.div key={i} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.07 }}
-            className="bg-gray-900/40 backdrop-blur-xl border border-white/10 rounded-2xl p-5 flex items-center gap-4"
+            className="glass p-5 flex items-center gap-4"
           >
             <div className="p-2.5 rounded-xl shrink-0"
               style={{ background: `${k.color}20`, border: `1px solid ${k.color}30` }}>
@@ -329,7 +329,7 @@ export default function Facturacion() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
           <input type="text" placeholder="Buscar por número o cliente…"
             value={busqueda} onChange={e => setBusqueda(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-gray-900/40 border border-white/10 rounded-xl text-white focus:border-indigo-500 outline-none transition-all text-sm"
+            className="w-full pl-10 pr-4 py-2 glass-input text-sm"
           />
         </div>
         <div className="flex gap-2">
@@ -348,7 +348,7 @@ export default function Facturacion() {
 
       {/* Tabla */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-        className="bg-gray-900/40 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden shadow-2xl"
+        className="glass-strong overflow-hidden shadow-2xl"
       >
         <div className="overflow-x-auto">
           <table className="w-full text-left">
