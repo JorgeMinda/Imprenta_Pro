@@ -416,16 +416,19 @@ export default function Usuarios() {
         <Pagination total={pagination.total} page={pagination.page} pageSize={pagination.pageSize} onPageChange={pagination.setPage} onPageSizeChange={pagination.setPageSize} />
       </motion.div>
 
-      <AnimatePresence>
+      <AnimatePresence key="modals">
         {modalEdit !== null && (
           <ModalUsuario
+            key="modal-edit"
             usuario={modalEdit === 'nuevo' ? null : modalEdit}
             onClose={() => setModalEdit(null)}
             onSave={fetchUsuarios}
           />
         )}
         {modalPwd && (
-          <ModalPassword usuario={modalPwd} onClose={() => setModalPwd(null)} />
+          <ModalPassword
+            key="modal-password"
+            usuario={modalPwd} onClose={() => setModalPwd(null)} />
         )}
       </AnimatePresence>
     </div>

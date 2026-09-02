@@ -575,9 +575,10 @@ export default function Inventario() {
       </motion.div>
 
       {/* Modales */}
-      <AnimatePresence>
+      <AnimatePresence key="inventario-modales">
         {modalMaterial !== null && (
           <ModalMaterial
+            key="inventario-material-modal"
             item={modalMaterial === 'nuevo' ? null : modalMaterial}
             onClose={() => setModalMaterial(null)}
             onSave={fetchInventario}
@@ -585,6 +586,7 @@ export default function Inventario() {
         )}
         {modalMovimiento && (
           <ModalMovimiento
+            key="inventario-movimiento-modal"
             item={modalMovimiento.item}
             tipo={modalMovimiento.tipo}
             onClose={() => setModalMovimiento(null)}
@@ -593,6 +595,7 @@ export default function Inventario() {
         )}
         {modalHistorial && (
           <ModalHistorial
+            key="inventario-historial-modal"
             item={modalHistorial}
             onClose={() => setModalHistorial(null)}
           />

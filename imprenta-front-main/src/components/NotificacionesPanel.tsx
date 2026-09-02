@@ -134,7 +134,7 @@ export default function NotificacionesPanel() {
         <Bell className="w-5 h-5" />
 
         {/* Badge */}
-        <AnimatePresence>
+<AnimatePresence key="notif-badge">
           {noLeidas > 0 && (
             <motion.span
               key="badge"
@@ -155,7 +155,7 @@ export default function NotificacionesPanel() {
       </button>
 
       {/* ── Panel desplegable ── */}
-      <AnimatePresence>
+      <AnimatePresence key="notif-panel">
         {open && (
           <motion.div
             initial={{ opacity: 0, y: -8, scale: 0.95 }}

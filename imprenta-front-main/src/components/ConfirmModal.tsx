@@ -87,7 +87,7 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
     <ConfirmContext.Provider value={{ confirmar }}>
       {children}
 
-      <AnimatePresence>
+      <AnimatePresence key="confirm-modal">
         {opts && cfg && (
           <>
             {/* Overlay */}

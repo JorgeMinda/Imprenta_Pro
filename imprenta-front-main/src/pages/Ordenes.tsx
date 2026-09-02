@@ -392,9 +392,10 @@ export default function Ordenes() {
       </motion.div>
 
       {/* Modal */}
-      <AnimatePresence>
+      <AnimatePresence key="orden-modal">
         {selectedOrden && (
           <ModalDetalle
+            key="orden-detalle"
             orden={selectedOrden}
             onClose={() => setSelectedOrden(null)}
             onCambiarEstado={handleCambiarEstado}

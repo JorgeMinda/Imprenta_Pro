@@ -215,18 +215,20 @@ export default function BusquedaGlobal() {
       </button>
 
       {/* ── Modal de búsqueda ── */}
-      <AnimatePresence>
+      <AnimatePresence key="busqueda-modal">
         {open && (
           <>
             {/* Overlay */}
             <motion.div
+              key="busqueda-overlay"
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => setOpen(false)}
               className="fixed inset-0 glass-overlay z-50"
             />
 
-            {/* Panel */}
-            <motion.div
+{/* Panel */}
+            <motion-div
+              key="busqueda-panel"
               initial={{ opacity: 0, y: -20, scale: 0.97 }}
               animate={{ opacity: 1, y: 0,   scale: 1 }}
               exit={{   opacity: 0, y: -20,  scale: 0.97 }}

@@ -183,12 +183,12 @@ export default function Clientes() {
         <Pagination total={pagination.total} page={pagination.page} pageSize={pagination.pageSize} onPageChange={pagination.setPage} onPageSizeChange={pagination.setPageSize} />
       </motion.div>
 
-      <AnimatePresence>
+      <AnimatePresence key="client-modal">
         {showModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          <div key="client-modal-wrapper" className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div key="client-modal-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => setShowModal(false)} className="absolute inset-0 glass-overlay" />
-            <motion.div initial={{ scale: 0.95, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }}
+            <motion.div key="client-modal-card" initial={{ scale: 0.95, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 20 }}
               className="relative w-full max-w-lg glass-float overflow-hidden">
               <div className="flex justify-between items-center p-6 border-b border-gray-800">
@@ -197,7 +197,7 @@ export default function Clientes() {
                   <X className="w-5 h-5" />
                 </button>
               </div>
-              <form onSubmit={handleSubmit} className="p-6 space-y-4">
+              <form key="client-modal-form" onSubmit={handleSubmit} className="p-6 space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-1">Nombre Completo *</label>
                   <input type="text" required value={formData.nombre}

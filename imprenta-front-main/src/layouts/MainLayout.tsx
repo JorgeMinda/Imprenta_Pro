@@ -68,6 +68,7 @@ export default function MainLayout() {
         <AnimatePresence>
           {!collapsed && (
             <motion.span
+              key={item.to}
               initial={{ opacity: 0, width: 0 }}
               animate={{ opacity: 1, width: 'auto' }}
               exit={{ opacity: 0, width: 0 }}
@@ -92,7 +93,7 @@ export default function MainLayout() {
         <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shrink-0 shadow-lg shadow-indigo-500/20">
           <span className="text-white text-xs font-black">IP</span>
         </div>
-        <AnimatePresence>
+        <AnimatePresence key="sidebar-title">
           {!collapsed && (
             <motion.div initial={{ opacity: 0, width: 0 }} animate={{ opacity: 1, width: 'auto' }}
               exit={{ opacity: 0, width: 0 }} className="overflow-hidden">
@@ -126,7 +127,7 @@ export default function MainLayout() {
           <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shrink-0 text-white text-xs font-bold shadow group-hover:scale-105 transition-transform">
             {user?.nombre?.charAt(0).toUpperCase() ?? '?'}
           </div>
-          <AnimatePresence>
+          <AnimatePresence key="user-info">
             {!collapsed && (
               <motion.div initial={{ opacity: 0, width: 0 }} animate={{ opacity: 1, width: 'auto' }}
                 exit={{ opacity: 0, width: 0 }} className="overflow-hidden flex-1 min-w-0">
@@ -178,13 +179,14 @@ export default function MainLayout() {
       </motion.aside>
 
       {/* SIDEBAR MOBILE */}
-      <AnimatePresence>
+      <AnimatePresence key="mobile-menu">
         {mobileOpen && (
           <>
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => setMobileOpen(false)}
               className="md:hidden fixed inset-0 glass-overlay z-40" />
             <motion.aside
+              key="mobile-aside"
               initial={{ x: -280 }} animate={{ x: 0 }} exit={{ x: -280 }}
               transition={{ type: 'spring', stiffness: 300, damping: 30 }}
               className="md:hidden fixed left-0 top-0 h-full w-64 z-50 glass-sidebar"

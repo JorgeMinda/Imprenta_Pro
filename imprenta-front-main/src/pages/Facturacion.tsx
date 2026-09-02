@@ -423,9 +423,10 @@ export default function Facturacion() {
         <Pagination total={pagination.total} page={pagination.page} pageSize={pagination.pageSize} onPageChange={pagination.setPage} onPageSizeChange={pagination.setPageSize} />
       </motion.div>
 
-      <AnimatePresence>
+      <AnimatePresence key="factura-modal">
         {showModal && (
           <ModalFactura
+            key="factura-modal-body"
             cotizaciones={cotizaciones}
             onClose={() => setShowModal(false)}
             onSave={fetchData}
