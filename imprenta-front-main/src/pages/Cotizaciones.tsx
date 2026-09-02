@@ -69,7 +69,7 @@ function ProductosList({ productos }: { productos: ProductoDetalle[] | null }) {
           <motion.div key="cotizacion-list" initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }} className="overflow-hidden mt-1 space-y-0.5">
             {items.map((p, i) => (
-              <p key={`${cotizacion-id}-${i}`} className="text-xs text-gray-300">
+              <p key={i} className="text-xs text-gray-300">
                 • {p.producto} <span className="text-gray-500">x{p.cantidad}</span>
               </p>
             ))}
