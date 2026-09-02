@@ -21,8 +21,9 @@ services:
         value: https://imprenta-client.onrender.com
 
   # ── Frontend (Static Site) ────────────────────────────────────────────────────
-  - type: static_site
+  - type: web
     name: imprenta-client
+    runtime: static
     rootDir: imprenta-front-main
     buildCommand: npm install && npm run build
     staticPublishPath: ./dist
