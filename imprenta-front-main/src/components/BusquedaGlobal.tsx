@@ -227,7 +227,7 @@ export default function BusquedaGlobal() {
             />
 
 {/* Panel */}
-            <motion-div
+            <motion.div
               key="busqueda-panel"
               initial={{ opacity: 0, y: -20, scale: 0.97 }}
               animate={{ opacity: 1, y: 0,   scale: 1 }}
