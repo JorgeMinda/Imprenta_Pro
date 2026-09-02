@@ -1,0 +1,73 @@
+:root {
+  --background: #1a1a2e;
+  --color: #ffffff;
+  --primary-color: #0f3460;
+}
+
+.login-wrapper {
+  background: var(--background);
+  color: var(--color);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.login-container {
+  position: relative;
+  width: 22rem;
+}
+
+.form-container {
+  border: 1px solid rgba(255,255,255,.15);
+  box-shadow: 0 0 36px rgba(0,0,0,.3);
+  border-radius: 12px;
+  backdrop-filter: blur(20px);
+  padding: 2rem;
+  position: relative;
+  z-index: 10;
+}
+
+.form-container input {
+  width: 100%;
+  padding: 14px;
+  margin: 1.5rem 0;
+  background: rgba(255,255,255,.1);
+  border: none;
+  border-radius: 6px;
+  color: white;
+}
+
+.form-container input:focus {
+  outline: none;
+  box-shadow: 0 0 10px rgba(0,0,0,.4);
+}
+
+.login-btn {
+  width: 100%;
+  padding: 14px;
+  background: var(--primary-color);
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.circle {
+  position: absolute;
+  width: 8rem;
+  height: 8rem;
+  border-radius: 50%;
+  background: var(--primary-color);
+  z-index: 1;
+}
+
+.circle-one {
+  top: -40px;
+  left: -40px;
+}
+
+.circle-two {
+  bottom: -40px;
+  right: -40px;
+}

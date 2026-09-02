@@ -1,0 +1,24 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #0f172a;
+  --sidebar: #020617;
+  --navbar: #020617;
+  --card: #1e293b;
+  --card-text: #111827;
+  --primary: #3b82f6;
+  --text: #ffffff;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  transition: all .3s ease;
+}
+.glass {
+  background: rgba(31, 41, 55, 0.4); /* o el color que prefieras */
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
