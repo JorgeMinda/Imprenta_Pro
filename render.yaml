@@ -27,7 +27,7 @@ services:
     plan: free
     rootDir: imprenta-front-main
     buildCommand: npm install && npm run build
-    startCommand: node serve.js
+    startCommand: node serve.cjs
     healthCheckPath: /
     envVars:
       - key: VITE_BACKEND_URL
