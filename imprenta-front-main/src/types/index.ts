@@ -3,7 +3,7 @@ export interface User {
   id?: string | number;
   nombre: string;
   email: string;
-  rol: 'admin' | 'vendedor' | 'empleado';
+  rol: 'admin' | 'vendedor' | 'empleado' | 'secretaria';
   cedula?: string;
 }
 

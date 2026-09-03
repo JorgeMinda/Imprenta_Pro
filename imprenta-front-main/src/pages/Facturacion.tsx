@@ -200,7 +200,7 @@ export default function Facturacion() {
   const [filtroEstado,    setFiltroEstado]    = useState<string>('todos');
   const [generandoPdfId,  setGenerandoPdfId]  = useState<number | null>(null);
 
-  const isAdminOrVendedor = ['admin','vendedor'].includes(user?.rol || '');
+  const isAdminOrVendedor = ['admin','vendedor','secretaria'].includes(user?.rol || '');
   const isAdmin           = user?.rol === 'admin';
    
   const fetchData = useCallback(async () => {

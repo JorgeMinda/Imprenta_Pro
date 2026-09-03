@@ -5,7 +5,7 @@ import { apiClient } from '../api/client';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Users, Plus, Search, Edit2, Trash2, Key, X,
-  Shield, User, Briefcase, AlertCircle
+  Shield, User, Briefcase, AlertCircle, BookOpen
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Pagination, { usePagination } from '../components/Pagination';
@@ -15,7 +15,7 @@ interface Usuario {
   id: number;
   nombre: string;
   email: string;
-  rol: 'admin' | 'vendedor' | 'empleado';
+  rol: 'admin' | 'vendedor' | 'empleado' | 'secretaria';
   cedula: string | null;
   creado_en: string;
 }
@@ -26,9 +26,10 @@ const toastStyle = {
 };
 
 const ROL_CONFIG = {
-  admin:    { label: 'Admin',    color: 'bg-red-500/10 text-red-400 border-red-500/30',       icon: Shield },
-  vendedor: { label: 'Vendedor', color: 'bg-blue-500/10 text-blue-400 border-blue-500/30',    icon: Briefcase },
-  empleado: { label: 'Empleado', color: 'bg-gray-500/10 text-gray-400 border-gray-500/30',   icon: User },
+  admin:      { label: 'Admin',      color: 'bg-red-500/10 text-red-400 border-red-500/30',       icon: Shield },
+  vendedor:   { label: 'Vendedor',   color: 'bg-blue-500/10 text-blue-400 border-blue-500/30',    icon: Briefcase },
+  secretaria: { label: 'Secretaria', color: 'bg-purple-500/10 text-purple-400 border-purple-500/30', icon: BookOpen },
+  empleado:   { label: 'Empleado',   color: 'bg-gray-500/10 text-gray-400 border-gray-500/30',   icon: User },
 };
 
 function RolBadge({ rol }: { rol: keyof typeof ROL_CONFIG }) {
@@ -121,11 +122,11 @@ function ModalUsuario({ usuario, onClose, onSave }: {
 
           <div>
             <label className="block text-xs text-gray-400 uppercase tracking-wide mb-1.5 font-medium">Rol</label>
-            <div className="grid grid-cols-3 gap-2">
-              {(['admin','vendedor','empleado'] as const).map(r => {
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {(['admin','vendedor','secretaria','empleado'] as const).map(r => {
                 const cfg = ROL_CONFIG[r];
                 return (
-                  <button key={r} onClick={() => setForm(p => ({ ...p, rol: r }))}
+                  <button key={r} type="button" onClick={() => setForm(p => ({ ...p, rol: r }))}
                     className={`py-2 px-3 rounded-xl text-xs font-bold border transition-all flex items-center justify-center gap-1.5
                       ${form.rol === r ? `${cfg.color} ring-2 ring-white/10` : 'bg-gray-800/60 text-gray-400 border-white/5 hover:text-white'}`}
                   >

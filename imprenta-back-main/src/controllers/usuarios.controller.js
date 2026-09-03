@@ -22,7 +22,7 @@ exports.crear = async (req, res) => {
     if (!email?.trim())  return res.status(400).json({ msg: 'El email es requerido' });
     if (!password || password.length < 6)
       return res.status(400).json({ msg: 'La contrasena debe tener al menos 6 caracteres' });
-    if (!['admin','vendedor','empleado'].includes(rol))
+    if (!['admin','vendedor','empleado','secretaria'].includes(rol))
       return res.status(400).json({ msg: 'Rol invalido' });
 
     const existe = await pool.query(`SELECT id FROM usuarios WHERE email = $1`, [email.trim()]);
@@ -45,7 +45,7 @@ exports.editar = async (req, res) => {
   const { id } = req.params;
   try {
     const { nombre, email, rol, cedula } = req.body;
-    if (rol && !['admin','vendedor','empleado'].includes(rol))
+    if (rol && !['admin','vendedor','empleado','secretaria'].includes(rol))
       return res.status(400).json({ msg: 'Rol invalido' });
 
     if (req.user.id === Number(id) && rol && rol !== 'admin') {

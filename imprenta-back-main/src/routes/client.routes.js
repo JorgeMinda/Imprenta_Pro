@@ -13,8 +13,8 @@ const checkRole = require('../middleware/role.middleware');  // ← import direc
 
 router.get('/', auth, listarClientes);
 router.get('/:id', auth, getClienteById);
-router.post('/', auth, checkRole('admin'), crearCliente);
-router.put('/:id', auth, checkRole('admin'), actualizarCliente);
+router.post('/', auth, checkRole('admin', 'vendedor', 'secretaria'), crearCliente);
+router.put('/:id', auth, checkRole('admin', 'vendedor', 'secretaria'), actualizarCliente);
 router.delete('/:id', auth, checkRole('admin'), eliminarCliente);
 
 module.exports = router;

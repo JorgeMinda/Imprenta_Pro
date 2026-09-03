@@ -9,25 +9,26 @@ import ThemeSwitcher       from '../components/ThemeSwitcher';
 import {
   LayoutDashboard, FileText, ClipboardList, Users, Package,
   Warehouse, BarChart2, LogOut, ChevronLeft, ChevronRight,
-  UserCog, Menu, Shield, Briefcase, User as UserIcon, Receipt
+  UserCog, Menu, Shield, Briefcase, User as UserIcon, Receipt, BookOpen
 } from 'lucide-react';
 
 const NAV_ITEMS = [
-  { to: '/dashboard',    label: 'Dashboard',     icon: LayoutDashboard, roles: ['admin','vendedor','empleado'] },
-  { to: '/cotizaciones', label: 'Cotizaciones',  icon: FileText,        roles: ['admin','vendedor'] },
-  { to: '/ordenes',      label: 'Órdenes',       icon: ClipboardList,   roles: ['admin','vendedor','empleado'] },
-  { to: '/clientes',     label: 'Clientes',      icon: Users,           roles: ['admin','vendedor'] },
-  { to: '/productos',    label: 'Productos',     icon: Package,         roles: ['admin','vendedor'] },
-  { to: '/inventario',   label: 'Inventario',    icon: Warehouse,       roles: ['admin','vendedor','empleado'] },
-  { to: '/reportes',     label: 'Reportes',      icon: BarChart2,       roles: ['admin','vendedor'] },
-  { to: '/facturacion',  label: 'Facturación',   icon: Receipt,         roles: ['admin','vendedor'] },
+  { to: '/dashboard',    label: 'Dashboard',     icon: LayoutDashboard, roles: ['admin','vendedor','empleado','secretaria'] },
+  { to: '/cotizaciones', label: 'Cotizaciones',  icon: FileText,        roles: ['admin','vendedor','secretaria'] },
+  { to: '/ordenes',      label: 'Órdenes',       icon: ClipboardList,   roles: ['admin','vendedor','empleado','secretaria'] },
+  { to: '/clientes',     label: 'Clientes',      icon: Users,           roles: ['admin','vendedor','secretaria'] },
+  { to: '/productos',    label: 'Productos',     icon: Package,         roles: ['admin','vendedor','secretaria'] },
+  { to: '/inventario',   label: 'Inventario',    icon: Warehouse,       roles: ['admin','vendedor','empleado','secretaria'] },
+  { to: '/reportes',     label: 'Reportes',      icon: BarChart2,       roles: ['admin','vendedor','secretaria'] },
+  { to: '/facturacion',  label: 'Facturación',   icon: Receipt,         roles: ['admin','vendedor','secretaria'] },
   { to: '/usuarios',     label: 'Usuarios',      icon: UserCog,         roles: ['admin'] },
 ];
 
 const ROL_CONFIG = {
-  admin:    { label: 'Administrador', icon: Shield,    color: 'text-red-400' },
-  vendedor: { label: 'Vendedor',      icon: Briefcase, color: 'text-blue-400' },
-  empleado: { label: 'Empleado',      icon: UserIcon,  color: 'text-gray-400' },
+  admin:      { label: 'Administrador',             icon: Shield,    color: 'text-red-400' },
+  vendedor:   { label: 'Vendedor',                  icon: Briefcase, color: 'text-blue-400' },
+  secretaria: { label: 'Secretaria / Contabilidad', icon: BookOpen,  color: 'text-purple-400' },
+  empleado:   { label: 'Empleado',                  icon: UserIcon,  color: 'text-gray-400' },
 };
 
 export default function MainLayout() {

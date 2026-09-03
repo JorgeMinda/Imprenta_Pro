@@ -95,7 +95,7 @@ export default function Cotizaciones() {
   const [clienteId,   setClienteId]   = useState('');
   const [items,       setItems]       = useState<ItemForm[]>([itemVacio()]);
 
-  const isAdminOrVendedor = ['admin', 'vendedor'].includes(user?.rol || '');
+  const isAdminOrVendedor = ['admin', 'vendedor', 'secretaria'].includes(user?.rol || '');
   const { confirmar } = useConfirm();
   const isAdmin = user?.rol === 'admin';
   const pagination = usePagination(cotizaciones);
