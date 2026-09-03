@@ -45,11 +45,11 @@ export default function Login() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const success = await login(email, password);
-    if (success) {
+    const res = await login(email, password);
+    if (res.ok) {
       navigate('/dashboard');
     } else {
-      toast.error('Correo o contraseña incorrectos', { style: toastStyle, duration: 4000 });
+      toast.error(res.msg || 'Correo o contraseña incorrectos', { style: toastStyle, duration: 4000 });
     }
     setLoading(false);
   };

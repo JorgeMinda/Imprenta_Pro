@@ -27,7 +27,7 @@ exports.login = async (req, res) => {
   );
 
   if (!result.rows.length)
-    return res.status(404).json({ msg: 'Usuario no existe' });
+    return res.status(401).json({ msg: 'Usuario no existe o credenciales inválidas' });
 
   const user = result.rows[0];
 
