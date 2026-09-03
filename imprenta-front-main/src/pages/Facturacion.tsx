@@ -6,7 +6,8 @@ import { useConfirm } from '../components/ConfirmModal';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Receipt, Plus, Search, X, CheckCircle, XCircle,
-  Trash2, RefreshCw, TrendingUp, Clock, Ban
+  Trash2, RefreshCw, TrendingUp, Clock, Ban,
+  Printer, FileDown, Loader2
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Pagination, { usePagination } from '../components/Pagination';
@@ -191,12 +192,13 @@ export default function Facturacion() {
   const { user } = useAuth();
   const { confirmar }   = useConfirm();
 
-  const [facturas,      setFacturas]      = useState<Factura[]>([]);
-  const [cotizaciones,  setCotizaciones]  = useState<Cotizacion[]>([]);
-  const [loading,       setLoading]       = useState(true);
-  const [busqueda,      setBusqueda]      = useState('');
-  const [showModal,     setShowModal]     = useState(false);
-  const [filtroEstado,  setFiltroEstado]  = useState<string>('todos');
+  const [facturas,        setFacturas]        = useState<Factura[]>([]);
+  const [cotizaciones,    setCotizaciones]    = useState<Cotizacion[]>([]);
+  const [loading,         setLoading]         = useState(true);
+  const [busqueda,        setBusqueda]        = useState('');
+  const [showModal,       setShowModal]       = useState(false);
+  const [filtroEstado,    setFiltroEstado]    = useState<string>('todos');
+  const [generandoPdfId,  setGenerandoPdfId]  = useState<number | null>(null);
 
   const isAdminOrVendedor = ['admin','vendedor'].includes(user?.rol || '');
   const isAdmin           = user?.rol === 'admin';
@@ -224,6 +226,27 @@ export default function Facturacion() {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
+  // ── Descargar / Imprimir PDF ──────────────────────────────────────────────
+  const handleDescargarPDF = async (f: Factura) => {
+    setGenerandoPdfId(f.id);
+    try {
+      const blob = await apiClient.blob(`/api/facturacion/${f.id}/pdf`);
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      a.href     = url;
+      a.download = `Factura_${f.numero || f.id}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast.success(`Factura ${f.numero} descargada para impresión ✅`, { style: toastStyle });
+    } catch (err: any) {
+      toast.error(err.message || 'Error al generar el PDF', { style: toastStyle });
+    } finally {
+      setGenerandoPdfId(null);
+    }
+  };
+
   // ── Filtros ────────────────────────────────────────────────────────────────
   const filtered = facturas.filter(f => {
     const matchBusqueda =
@@ -237,7 +260,7 @@ export default function Facturacion() {
   // ── Acciones ───────────────────────────────────────────────────────────────
   const cambiarEstado = async (f: Factura, estado: 'pagada' | 'anulada') => {
     const cfg = estado === 'pagada'
-      ? { titulo: 'Marcar como pagada', mensaje: `¿Confirmar pago de la factura ${f.numero}?`, variante: 'success' as const, labelOk: 'Marcar pagada' }
+      ? { titulo: 'Marcar como pagada', mensaje: `¿Confirmar pago de la factura ${f.numero}? Se generará el PDF automáticamente para impresión.`, variante: 'success' as const, labelOk: 'Marcar pagada y generar PDF' }
       : { titulo: 'Anular factura',     mensaje: `¿Anular la factura ${f.numero}? No se puede deshacer.`, variante: 'warning' as const, labelOk: 'Anular' };
 
     const ok = await confirmar(cfg);
@@ -247,6 +270,11 @@ export default function Facturacion() {
       await apiClient.patch(`/api/facturacion/${f.id}`, { estado });
       toast.success(estado === 'pagada' ? 'Factura marcada como pagada ✅' : 'Factura anulada', { style: toastStyle });
       fetchData();
+
+      if (estado === 'pagada') {
+        // Descargar automáticamente el PDF de la factura pagada
+        handleDescargarPDF(f);
+      }
     } catch (err: any) {
       toast.error(err.message, { style: toastStyle });
     }
@@ -394,10 +422,24 @@ export default function Facturacion() {
                     <td className="px-5 py-4 text-sm text-gray-400">{f.fecha_emision}</td>
                     <td className="px-5 py-4 text-right">
                       <div className="flex justify-end items-center gap-1 opacity-70 group-hover:opacity-100 transition-opacity">
+                        {/* Botón Imprimir/Descargar PDF */}
+                        <button
+                          onClick={() => handleDescargarPDF(f)}
+                          disabled={generandoPdfId === f.id}
+                          className="p-1.5 hover:bg-blue-500/20 rounded-lg text-blue-400 hover:text-blue-300 transition-colors disabled:opacity-50"
+                          title="Descargar / Imprimir Factura en PDF"
+                        >
+                          {generandoPdfId === f.id ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <Printer className="w-4 h-4" />
+                          )}
+                        </button>
+
                         {isAdminOrVendedor && f.estado === 'pendiente' && (
                           <>
                             <button onClick={() => cambiarEstado(f, 'pagada')}
-                              className="p-1.5 hover:bg-emerald-500/20 rounded-lg text-emerald-400 transition-colors" title="Marcar pagada">
+                              className="p-1.5 hover:bg-emerald-500/20 rounded-lg text-emerald-400 transition-colors" title="Marcar pagada y generar PDF">
                               <CheckCircle className="w-4 h-4" />
                             </button>
                             <button onClick={() => cambiarEstado(f, 'anulada')}
