@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Receipt, Plus, Search, X, CheckCircle, XCircle,
   Trash2, RefreshCw, TrendingUp, Clock, Ban,
-  Printer, FileDown, Loader2
+  Printer, Loader2
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Pagination, { usePagination } from '../components/Pagination';
