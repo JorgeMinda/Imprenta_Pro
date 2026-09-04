@@ -15,6 +15,6 @@ router.get('/', auth, listarClientes);
 router.get('/:id', auth, getClienteById);
 router.post('/', auth, checkRole('admin', 'vendedor', 'secretaria'), crearCliente);
 router.put('/:id', auth, checkRole('admin', 'vendedor', 'secretaria'), actualizarCliente);
-router.delete('/:id', auth, checkRole('admin'), eliminarCliente);
+router.delete('/:id', auth, checkRole('admin', 'vendedor', 'secretaria'), eliminarCliente);
 
 module.exports = router;

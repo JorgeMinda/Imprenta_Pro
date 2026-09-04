@@ -216,3 +216,25 @@ export interface MovimientoClienteContable {
   pagado: number;
   saldo_pendiente: number;
 }
+
+// ── Auditoría y Trazabilidad ─────────────────────────────────────────────────
+export interface AuditLog {
+  id: number;
+  usuario_id?: number | null;
+  usuario_nombre?: string;
+  usuario_rol?: string;
+  modulo: 'clientes' | 'facturas' | 'contabilidad' | 'productos' | 'inventario' | 'cotizaciones' | 'usuarios' | string;
+  accion: 'CREAR' | 'EDITAR' | 'DESACTIVAR' | 'ANULAR' | 'ELIMINAR' | string;
+  entidad_id?: string | null;
+  descripcion: string;
+  detalles?: any;
+  ip?: string | null;
+  fecha: string;
+}
+
+export interface AuditStats {
+  accionesHoy: number;
+  totalBajasOAnulaciones: number;
+  topModulos: { modulo: string; total: string | number }[];
+  distribucionAcciones: { accion: string; total: string | number }[];
+}

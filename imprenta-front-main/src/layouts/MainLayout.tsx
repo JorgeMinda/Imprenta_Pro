@@ -9,7 +9,7 @@ import ThemeSwitcher       from '../components/ThemeSwitcher';
 import {
   LayoutDashboard, FileText, ClipboardList, Users, Package,
   Warehouse, BarChart2, LogOut, ChevronLeft, ChevronRight,
-  UserCog, Menu, Shield, Briefcase, User as UserIcon, Receipt, BookOpen, BookOpenCheck
+  UserCog, Menu, Shield, Briefcase, User as UserIcon, Receipt, BookOpen, BookOpenCheck, ShieldAlert
 } from 'lucide-react';
 
 const NAV_ITEMS = [
@@ -23,6 +23,7 @@ const NAV_ITEMS = [
   { to: '/reportes',     label: 'Reportes',      icon: BarChart2,       roles: ['admin','vendedor','secretaria'] },
   { to: '/facturacion',  label: 'Facturación',   icon: Receipt,         roles: ['admin','vendedor','secretaria'] },
   { to: '/usuarios',     label: 'Usuarios',      icon: UserCog,         roles: ['admin'] },
+  { to: '/auditoria',    label: 'Auditoría',     icon: ShieldAlert,     roles: ['admin'] },
 ];
 
 const ROL_CONFIG = {

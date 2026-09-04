@@ -69,22 +69,22 @@ export default function Clientes() {
     }
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (cliente: Cliente) => {
     const ok = await confirmar({
-      titulo:   'Eliminar cliente',
-      mensaje:  '¿Eliminar este cliente? Esta acción no se puede deshacer.',
+      titulo:   'Desactivar Cliente',
+      mensaje:  `¿Deseas dar de baja a "${cliente.nombre}"? Pasará a estado inactivo (Soft Delete) y quedará registrado en la auditoría del administrador.`,
       variante: 'danger',
-      labelOk:  'Eliminar',
+      labelOk:  'Desactivar',
     });
     if (!ok) return;
     try {
-      await apiClient.delete(`/api/clientes/${id}`);
+      await apiClient.delete(`/api/clientes/${cliente.id}`);
       fetchClientes();
-      toast.success('Cliente eliminado', {
+      toast.success('Cliente desactivado correctamente', {
         icon: '🗑️', style: { background: '#10B981', color: 'white', borderRadius: '0.75rem' },
       });
     } catch (err: any) {
-      toast.error(err.message || 'No se pudo eliminar el cliente', {
+      toast.error(err.message || 'No se pudo desactivar el cliente', {
         style: { background: '#EF4444', color: 'white', borderRadius: '0.75rem' },
       });
     }
@@ -169,8 +169,9 @@ export default function Clientes() {
                       </motion.button>
                       <div className="w-px h-6 bg-gray-700 mx-1" />
                       <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
-                        onClick={() => handleDelete(cliente.id)}
-                        className="p-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 rounded-lg transition-all">
+                        onClick={() => handleDelete(cliente)}
+                        className="p-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 rounded-lg transition-all"
+                        title="Desactivar cliente (Soft Delete)">
                         <Trash2 className="w-4 h-4 text-red-400" />
                       </motion.button>
                     </div>

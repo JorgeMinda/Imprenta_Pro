@@ -15,6 +15,7 @@ import Usuarios      from './pages/Usuarios';
 import Perfil        from './pages/Perfil';
 import Facturacion   from './pages/Facturacion';
 import Contabilidad  from './pages/Contabilidad';
+import Auditoria     from './pages/Auditoria';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { token, loading } = useAuth();
@@ -64,6 +65,7 @@ export default function App() {
             <Route path="perfil" element={<Perfil />} />
             <Route path="facturacion" element={<Facturacion />} />
             <Route path="contabilidad" element={<Contabilidad />} />
+            <Route path="auditoria" element={<Auditoria />} />
           </Route>
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>

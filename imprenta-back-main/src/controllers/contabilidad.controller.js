@@ -1,6 +1,7 @@
 // src/controllers/contabilidad.controller.js
 const service = require('../services/contabilidad.service');
 const PDFDocument = require('pdfkit');
+const auditService = require('../services/audit.service');
 
 exports.listarCuentas = async (req, res) => {
   try {
@@ -15,6 +16,13 @@ exports.listarCuentas = async (req, res) => {
 exports.crearCuenta = async (req, res) => {
   try {
     const data = await service.crearCuenta(req.body);
+    await auditService.registrar(req, {
+      modulo: 'contabilidad',
+      accion: 'CREAR',
+      entidad_id: data.id,
+      descripcion: `Nueva cuenta contable creada: ${data.codigo} - ${data.nombre}`,
+      detalles: data
+    });
     res.status(201).json({ msg: 'Cuenta creada exitosamente', cuenta: data });
   } catch (err) {
     console.error('Error al crear cuenta:', err);
@@ -53,6 +61,15 @@ exports.crearAsiento = async (req, res) => {
   try {
     const usuarioId = req.user?.id;
     const data = await service.crearAsiento(req.body, usuarioId);
+
+    await auditService.registrar(req, {
+      modulo: 'contabilidad',
+      accion: 'CREAR',
+      entidad_id: data.id,
+      descripcion: `Asiento contable registrado: ${data.numero_asiento} ($${data.total_debito})`,
+      detalles: { numero_asiento: data.numero_asiento, total: data.total_debito, concepto: data.concepto }
+    });
+
     res.status(201).json({ msg: 'Asiento contable registrado exitosamente', asiento: data });
   } catch (err) {
     console.error('Error al crear asiento:', err);
@@ -66,6 +83,15 @@ exports.anularAsiento = async (req, res) => {
     const { motivo } = req.body;
     const usuarioId = req.user?.id;
     const data = await service.anularAsiento(id, usuarioId, motivo);
+
+    await auditService.registrar(req, {
+      modulo: 'contabilidad',
+      accion: 'ANULAR',
+      entidad_id: id,
+      descripcion: `Asiento contable anulado ID ${id}: ${motivo || 'Sin motivo especificado'}`,
+      detalles: { id, motivo }
+    });
+
     res.json({ msg: 'Asiento anulado correctamente', asiento: data });
   } catch (err) {
     console.error('Error al anular asiento:', err);
