@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { X, Plus, Trash2, CheckCircle2, AlertTriangle, Calculator, FileText } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { apiClient } from '../api/client';

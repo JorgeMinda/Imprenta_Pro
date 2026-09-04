@@ -1,14 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import {
-  BookOpenCheck, Plus, Search, Filter, Calendar, Download,
-  CheckCircle2, AlertTriangle, ChevronDown, ChevronRight,
-  TrendingUp, TrendingDown, DollarSign, Users, Scale, FileText,
-  ShieldCheck, RefreshCw, Printer
+  BookOpenCheck, Plus, Search, ChevronDown, ChevronRight,
+  TrendingUp, Users, Scale, FileText, RefreshCw, Printer
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { apiClient } from '../api/client';
-import { useAuth } from '../contexts/AuthContext';
 import { useConfirm } from '../components/ConfirmModal';
 import AsientoFormModal from '../components/AsientoFormModal';
 import type {
@@ -28,7 +25,6 @@ const toastStyle = {
 };
 
 export default function Contabilidad() {
-  const { user } = useAuth();
   const { confirmar } = useConfirm();
 
   const [tab, setTab] = useState<'diario' | 'plan' | 'balance' | 'pyg' | 'clientes'>('diario');
@@ -147,10 +143,10 @@ export default function Contabilidad() {
   // Anular Asiento
   const handleAnularAsiento = async (asiento: AsientoContable) => {
     const ok = await confirmar({
-      title: '¿Anular Asiento Contable?',
-      message: `¿Estás seguro de anular el asiento ${asiento.numero_asiento}? Esta acción quedará registrada en auditoría.`,
-      confirmText: 'Sí, anular',
-      danger: true,
+      titulo: '¿Anular Asiento Contable?',
+      mensaje: `¿Estás seguro de anular el asiento ${asiento.numero_asiento}? Esta acción quedará registrada en auditoría.`,
+      labelOk: 'Sí, anular',
+      variante: 'danger',
     });
     if (!ok) return;
 
@@ -196,6 +192,18 @@ export default function Contabilidad() {
     c.codigo.toLowerCase().includes(busquedaCuenta.toLowerCase()) ||
     c.nombre.toLowerCase().includes(busquedaCuenta.toLowerCase())
   );
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="flex space-x-2">
+          {[0, 0.1, 0.2].map((d, i) => (
+            <div key={i} className="w-3.5 h-3.5 rounded-full bg-indigo-500 animate-bounce" style={{ animationDelay: `${d}s` }} />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
