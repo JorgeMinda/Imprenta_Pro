@@ -1,5 +1,6 @@
 // src/controllers/inventario.controller.js
 const pool = require('../config/db');
+const auditService = require('../services/audit.service');
 
 // ── 1. LISTAR INVENTARIO ─────────────────────────────────────────────────────
 exports.listarInventario = async (req, res) => {
@@ -16,6 +17,7 @@ exports.listarInventario = async (req, res) => {
         CASE WHEN i.stock_actual <= i.stock_minimo THEN true ELSE false END AS alerta
       FROM inventario i
       JOIN materiales m ON i.material_id = m.id
+      WHERE COALESCE(i.activo, true) = true AND COALESCE(m.activo, true) = true
       ORDER BY m.nombre ASC
     `);
     res.json(result.rows);
@@ -29,7 +31,7 @@ exports.listarInventario = async (req, res) => {
 exports.listarMateriales = async (req, res) => {
   try {
     const result = await pool.query(
-      `SELECT id, nombre, descripcion, unidad FROM materiales ORDER BY nombre ASC`
+      `SELECT id, nombre, descripcion, unidad FROM materiales WHERE COALESCE(activo, true) = true ORDER BY nombre ASC`
     );
     res.json(result.rows);
   } catch (err) {
@@ -49,17 +51,18 @@ exports.crearMaterial = async (req, res) => {
     await client.query('BEGIN');
 
     const mat = await client.query(
-      `INSERT INTO materiales (nombre, descripcion, unidad)
-       VALUES ($1, $2, $3) RETURNING id`,
+      `INSERT INTO materiales (nombre, descripcion, unidad, activo)
+       VALUES ($1, $2, $3, true) RETURNING id`,
       [nombre.trim(), descripcion?.trim() || null, unidad.trim()]
     );
     const material_id = mat.rows[0].id;
 
-    await client.query(
-      `INSERT INTO inventario (material_id, stock_actual, stock_minimo)
-       VALUES ($1, $2, $3)`,
+    const invRes = await client.query(
+      `INSERT INTO inventario (material_id, stock_actual, stock_minimo, activo)
+       VALUES ($1, $2, $3, true) RETURNING id`,
       [material_id, Number(stock_actual), Number(stock_minimo)]
     );
+    const inventario_id = invRes.rows[0].id;
 
     if (Number(stock_actual) > 0) {
       await client.query(
@@ -70,7 +73,16 @@ exports.crearMaterial = async (req, res) => {
     }
 
     await client.query('COMMIT');
-    res.status(201).json({ msg: 'Material creado correctamente', material_id });
+
+    await auditService.registrar(req, {
+      modulo: 'inventario',
+      accion: 'CREAR',
+      entidad_id: inventario_id,
+      descripcion: `Material "${nombre.trim()}" creado con stock inicial de ${Number(stock_actual)} ${unidad.trim()}`,
+      detalles: { inventario_id, material_id, nombre: nombre.trim(), unidad: unidad.trim(), stock_actual: Number(stock_actual), stock_minimo: Number(stock_minimo) },
+    });
+
+    res.status(201).json({ msg: 'Material creado correctamente', material_id, inventario_id });
   } catch (err) {
     await client.query('ROLLBACK');
     console.error('Error al crear material:', err);
@@ -90,7 +102,10 @@ exports.editarMaterial = async (req, res) => {
     await client.query('BEGIN');
 
     const inv = await client.query(`SELECT material_id FROM inventario WHERE id = $1`, [id]);
-    if (inv.rowCount === 0) return res.status(404).json({ msg: 'Registro no encontrado' });
+    if (inv.rowCount === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ msg: 'Registro no encontrado' });
+    }
     const material_id = inv.rows[0].material_id;
 
     await client.query(
@@ -110,6 +125,15 @@ exports.editarMaterial = async (req, res) => {
     }
 
     await client.query('COMMIT');
+
+    await auditService.registrar(req, {
+      modulo: 'inventario',
+      accion: 'EDITAR',
+      entidad_id: id,
+      descripcion: `Material #${material_id} ("${nombre?.trim() || 'Material'}") actualizado`,
+      detalles: { inventario_id: id, material_id, nombre, unidad, stock_minimo },
+    });
+
     res.json({ msg: 'Material actualizado correctamente' });
   } catch (err) {
     await client.query('ROLLBACK');
@@ -135,18 +159,22 @@ exports.registrarMovimiento = async (req, res) => {
 
     await client.query('BEGIN');
 
-    if (tipo === 'salida') {
-      const stockRes = await client.query(
-        `SELECT stock_actual FROM inventario WHERE material_id = $1`, [material_id]
-      );
-      if (stockRes.rowCount === 0) {
-        await client.query('ROLLBACK');
-        return res.status(404).json({ msg: 'Material no encontrado en inventario' });
-      }
-      if (Number(stockRes.rows[0].stock_actual) < Number(cantidad)) {
-        await client.query('ROLLBACK');
-        return res.status(400).json({ msg: 'Stock insuficiente para esta salida' });
-      }
+    const stockRes = await client.query(
+      `SELECT i.stock_actual, m.nombre, m.unidad 
+       FROM inventario i 
+       JOIN materiales m ON m.id = i.material_id 
+       WHERE i.material_id = $1`, [material_id]
+    );
+    if (stockRes.rowCount === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ msg: 'Material no encontrado en inventario' });
+    }
+
+    const { stock_actual, nombre, unidad } = stockRes.rows[0];
+
+    if (tipo === 'salida' && Number(stock_actual) < Number(cantidad)) {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ msg: 'Stock insuficiente para esta salida' });
     }
 
     const delta = tipo === 'entrada' ? Number(cantidad) : -Number(cantidad);
@@ -162,6 +190,15 @@ exports.registrarMovimiento = async (req, res) => {
     );
 
     await client.query('COMMIT');
+
+    await auditService.registrar(req, {
+      modulo: 'inventario',
+      accion: tipo === 'entrada' ? 'ENTRADA_STOCK' : 'SALIDA_STOCK',
+      entidad_id: material_id,
+      descripcion: `Movimiento de ${tipo}: ${cantidad} ${unidad} en "${nombre}"`,
+      detalles: { material_id, nombre, cantidad: Number(cantidad), tipo, orden_id, stock_anterior: Number(stock_actual), stock_nuevo: Number(stock_actual) + delta },
+    });
+
     res.status(201).json({
       msg: `${tipo === 'entrada' ? 'Entrada' : 'Salida'} registrada`,
       movimiento: mov.rows[0]
@@ -213,7 +250,9 @@ exports.alertasStock = async (req, res) => {
         i.stock_minimo
       FROM inventario i
       JOIN materiales m ON i.material_id = m.id
-      WHERE i.stock_actual <= i.stock_minimo
+      WHERE COALESCE(i.activo, true) = true 
+        AND COALESCE(m.activo, true) = true
+        AND i.stock_actual <= i.stock_minimo
       ORDER BY (i.stock_minimo - i.stock_actual) DESC
     `);
     res.json(result.rows);
@@ -223,28 +262,67 @@ exports.alertasStock = async (req, res) => {
   }
 };
 
-// ── 8. ELIMINAR MATERIAL ─────────────────────────────────────────────────────
+// ── 8. ELIMINAR / DESACTIVAR MATERIAL (SOFT DELETE PARA SECRETARIA / VENDEDOR) ──
 exports.eliminarMaterial = async (req, res) => {
   const { id } = req.params;
+  const userRole = req.user?.rol;
+  const client = await pool.connect();
   try {
-    const inv = await pool.query(`SELECT material_id FROM inventario WHERE id = $1`, [id]);
-    if (inv.rowCount === 0) return res.status(404).json({ msg: 'Registro no encontrado' });
-    const material_id = inv.rows[0].material_id;
+    await client.query('BEGIN');
+    const inv = await client.query(`
+      SELECT i.id, i.material_id, m.nombre 
+      FROM inventario i 
+      JOIN materiales m ON i.material_id = m.id 
+      WHERE i.id = $1
+    `, [id]);
+    
+    if (inv.rowCount === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ msg: 'Registro no encontrado' });
+    }
+    const { material_id, nombre } = inv.rows[0];
 
-    const movs = await pool.query(
+    const movs = await client.query(
       `SELECT COUNT(*) FROM movimientos_inventario WHERE material_id = $1`, [material_id]
     );
-    if (Number(movs.rows[0].count) > 0) {
-      return res.status(400).json({
-        msg: 'No se puede eliminar: tiene movimientos registrados.'
+    const hasMovements = Number(movs.rows[0].count) > 0;
+
+    // Si es secretaria, vendedor o si el material posee historial de movimientos: Soft Delete
+    if (userRole !== 'admin' || hasMovements) {
+      await client.query(`UPDATE inventario SET activo = false WHERE id = $1`, [id]);
+      await client.query(`UPDATE materiales SET activo = false WHERE id = $1`, [material_id]);
+      await client.query('COMMIT');
+
+      await auditService.registrar(req, {
+        modulo: 'inventario',
+        accion: 'DESACTIVAR',
+        entidad_id: id,
+        descripcion: `Material "${nombre}" (ID: ${material_id}) dado de baja (Soft Delete) por usuario rol ${userRole}`,
+        detalles: { inventario_id: id, material_id, nombre, soft_delete: true, motivo: hasMovements ? 'Posee movimientos registrados' : 'Baja solicitada' },
       });
+
+      return res.json({ msg: 'Material desactivado correctamente (Soft Delete)' });
     }
 
-    await pool.query(`DELETE FROM inventario WHERE id = $1`, [id]);
-    await pool.query(`DELETE FROM materiales WHERE id = $1`, [material_id]);
-    res.json({ msg: 'Material eliminado correctamente' });
+    // Si es administrador y no tiene movimientos: borrado definitivo
+    await client.query(`DELETE FROM inventario WHERE id = $1`, [id]);
+    await client.query(`DELETE FROM materiales WHERE id = $1`, [material_id]);
+    await client.query('COMMIT');
+
+    await auditService.registrar(req, {
+      modulo: 'inventario',
+      accion: 'ELIMINAR',
+      entidad_id: id,
+      descripcion: `Material "${nombre}" (ID: ${material_id}) eliminado definitivamente de la base de datos por el administrador`,
+      detalles: { inventario_id: id, material_id, nombre, hard_delete: true },
+    });
+
+    res.json({ msg: 'Material eliminado definitivamente' });
   } catch (err) {
-    console.error('Error al eliminar material:', err);
-    res.status(500).json({ msg: 'Error al eliminar material' });
+    await client.query('ROLLBACK');
+    console.error('Error al eliminar/desactivar material:', err);
+    res.status(500).json({ msg: 'Error al procesar la baja del material' });
+  } finally {
+    client.release();
   }
 };

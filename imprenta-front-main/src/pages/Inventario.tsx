@@ -356,7 +356,7 @@ export default function Inventario() {
   const [modalMovimiento,  setModalMovimiento]  = useState<{ item: ItemInventario; tipo: 'entrada'|'salida' } | null>(null);
   const [modalHistorial,   setModalHistorial]   = useState<ItemInventario | null>(null);
 
-  const puedeEditar = user?.rol === 'admin' || user?.rol === 'vendedor';
+  const puedeEditar = ['admin', 'vendedor', 'secretaria'].includes(user?.rol || '');
   const { confirmar } = useConfirm();
   const pagination = usePagination(filtered);
 
@@ -390,21 +390,36 @@ export default function Inventario() {
   }, [busqueda, soloAlertas, inventario]);
 
   const handleEliminar = async (item: ItemInventario) => {
+    const isAdmin = user?.rol === 'admin';
     const ok = await confirmar({
-      titulo:   'Eliminar material',
-      mensaje:  `¿Eliminar "${item.material}"? Si tiene movimientos registrados no podrá borrarse.`,
+      titulo:   isAdmin ? 'Eliminar / Desactivar Material' : 'Dar de Baja Material',
+      mensaje:  isAdmin
+        ? `¿Deseas dar de baja a "${item.material}"? Si posee movimientos se aplicará baja lógica (Soft Delete) manteniendo el historial.`
+        : `¿Deseas dar de baja a "${item.material}"? Pasará a estado inactivo (Soft Delete) y quedará registrado en la auditoría del administrador.`,
       variante: 'danger',
-      labelOk:  'Eliminar',
+      labelOk:  isAdmin ? 'Eliminar' : 'Desactivar',
     });
     if (!ok) return;
     try {
       await apiClient.delete(`/api/inventario/${item.id}`);
-      toast.success('Material eliminado', { style: toastStyle });
+      toast.success(isAdmin ? 'Material procesado correctamente' : 'Material dado de baja (Soft Delete) 🗑️', { style: toastStyle });
       fetchInventario();
     } catch (err: any) {
-      toast.error(err.message || 'No se puede eliminar este material', { style: toastStyle });
+      toast.error(err.message || 'No se pudo procesar la baja del material', { style: toastStyle });
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[70vh]">
+        <div className="flex space-x-2">
+          {[0, 0.1, 0.2].map((d, i) => (
+            <div key={i} className="w-4 h-4 rounded-full bg-indigo-500 animate-bounce" style={{ animationDelay: `${d}s` }} />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   const alertasCount = inventario.filter(i => i.alerta).length;
 
@@ -503,14 +518,12 @@ export default function Inventario() {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
-              {loading ? (
-                Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={i} />)
-              ) : filtered.length === 0 ? (
+              {filtered.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-16 text-center">
                     <Package className="w-12 h-12 text-gray-600 mx-auto mb-3" />
                     <p className="text-gray-500">
-                      {inventario.length === 0 ? 'No hay materiales registrados. ¡Agrega el primero!' : 'Sin resultados para esta búsqueda.'}
+                      <span>{inventario.length === 0 ? 'No hay materiales registrados. ¡Agrega el primero!' : 'Sin resultados para esta búsqueda.'}</span>
                     </p>
                   </td>
                 </tr>
@@ -518,15 +531,15 @@ export default function Inventario() {
                 pagination.paginated.map(item => (
                   <tr key={item.id} className={`hover:bg-white/5 transition-colors ${item.alerta ? 'border-l-2 border-red-500/50' : ''}`}>
                     <td className="px-6 py-4">
-                      <p className="text-sm font-semibold text-white">{item.material}</p>
+                      <p className="text-sm font-semibold text-white"><span>{item.material}</span></p>
                       {item.alerta && (
                         <span className="inline-flex items-center gap-1 text-xs text-red-400 mt-0.5">
-                          <AlertTriangle className="w-3 h-3" /> Stock bajo
+                          <AlertTriangle className="w-3 h-3" /> <span>Stock bajo</span>
                         </span>
                       )}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-400">{item.descripcion || '—'}</td>
-                    <td className="px-6 py-4 text-sm text-gray-300">{item.unidad}</td>
+                    <td className="px-6 py-4 text-sm text-gray-400"><span>{item.descripcion || '—'}</span></td>
+                    <td className="px-6 py-4 text-sm text-gray-300"><span>{item.unidad}</span></td>
                     <td className="px-6 py-4">
                       <span className={`text-lg font-black ${
                         item.stock_actual <= 0 ? 'text-red-400' :
@@ -535,32 +548,50 @@ export default function Inventario() {
                         {item.stock_actual}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-400">{item.stock_minimo}</td>
+                    <td className="px-6 py-4 text-sm text-gray-400"><span>{item.stock_minimo}</span></td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end items-center gap-1">
                         {puedeEditar && (<>
-                          <button onClick={() => setModalMovimiento({ item, tipo: 'entrada' })}
-                            className="p-1.5 hover:bg-emerald-500/20 rounded-lg text-emerald-500 transition-colors" title="Registrar entrada">
+                          <button
+                            type="button"
+                            onClick={() => setModalMovimiento({ item, tipo: 'entrada' })}
+                            className="p-1.5 hover:bg-emerald-500/20 rounded-lg text-emerald-500 transition-colors cursor-pointer"
+                            title="Registrar entrada"
+                          >
                             <ArrowUpCircle size={16} />
                           </button>
-                          <button onClick={() => setModalMovimiento({ item, tipo: 'salida' })}
-                            className="p-1.5 hover:bg-red-500/20 rounded-lg text-red-400 transition-colors" title="Registrar salida">
+                          <button
+                            type="button"
+                            onClick={() => setModalMovimiento({ item, tipo: 'salida' })}
+                            className="p-1.5 hover:bg-red-500/20 rounded-lg text-red-400 transition-colors cursor-pointer"
+                            title="Registrar salida"
+                          >
                             <ArrowDownCircle size={16} />
                           </button>
                           <div className="w-px h-4 bg-white/10 mx-1" />
-                          <button onClick={() => setModalMaterial(item)}
-                            className="p-1.5 hover:bg-blue-500/20 rounded-lg text-blue-400 transition-colors" title="Editar">
+                          <button
+                            type="button"
+                            onClick={() => setModalMaterial(item)}
+                            className="p-1.5 hover:bg-blue-500/20 rounded-lg text-blue-400 transition-colors cursor-pointer"
+                            title="Editar"
+                          >
                             <Edit2 size={16} />
                           </button>
-                          {user?.rol === 'admin' && (
-                            <button onClick={() => handleEliminar(item)}
-                              className="p-1.5 hover:bg-red-500/20 rounded-lg text-red-500 transition-colors" title="Eliminar">
-                              <Trash2 size={16} />
-                            </button>
-                          )}
+                          <button
+                            type="button"
+                            onClick={() => handleEliminar(item)}
+                            className="p-1.5 hover:bg-red-500/20 rounded-lg text-red-500 transition-colors cursor-pointer"
+                            title={user?.rol === 'admin' ? 'Eliminar / Desactivar' : 'Dar de baja (Soft Delete)'}
+                          >
+                            <Trash2 size={16} />
+                          </button>
                         </>)}
-                        <button onClick={() => setModalHistorial(item)}
-                          className="p-1.5 hover:bg-white/10 rounded-lg text-gray-400 hover:text-white transition-colors" title="Historial">
+                        <button
+                          type="button"
+                          onClick={() => setModalHistorial(item)}
+                          className="p-1.5 hover:bg-white/10 rounded-lg text-gray-400 hover:text-white transition-colors cursor-pointer"
+                          title="Historial"
+                        >
                           <History size={16} />
                         </button>
                       </div>
