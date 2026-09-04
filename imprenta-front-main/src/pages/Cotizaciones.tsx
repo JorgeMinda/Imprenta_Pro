@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { apiClient } from '../api/client';
 import type { Cliente, Producto, ItemForm } from '../types';
-import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle, XCircle, Trash2, Plus, X, Package, ChevronDown, ChevronUp } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Pagination, { usePagination } from '../components/Pagination';
