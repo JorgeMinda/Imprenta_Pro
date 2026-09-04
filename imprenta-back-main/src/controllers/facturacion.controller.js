@@ -92,6 +92,9 @@ exports.crear = async (req, res) => {
   }
 };
 
+const contabilidadService = require('../services/contabilidad.service');
+const contabilidadRepo = require('../repositories/contabilidad.repository');
+
 // ── 3. CAMBIAR ESTADO ─────────────────────────────────────────────────────
 exports.cambiarEstado = async (req, res) => {
   const { id }     = req.params;
@@ -107,7 +110,43 @@ exports.cambiarEstado = async (req, res) => {
     );
     if (result.rowCount === 0)
       return res.status(404).json({ msg: 'Factura no encontrada' });
-    res.json({ msg: `Factura marcada como ${estado}`, factura: result.rows[0] });
+
+    const fac = result.rows[0];
+
+    // Generar Asiento Contable Automático al marcar como pagada
+    if (estado === 'pagada') {
+      try {
+        const cCaja = await contabilidadRepo.obtenerCuentaPorCodigo('1.1.01.01');
+        const cVenta = await contabilidadRepo.obtenerCuentaPorCodigo('4.1.01');
+        const cIva = await contabilidadRepo.obtenerCuentaPorCodigo('2.1.02.01');
+
+        if (cCaja && cVenta) {
+          const subtotal = Number(fac.subtotal);
+          const impuesto = Number(fac.impuesto_valor) || 0;
+          const total = Number(fac.total);
+
+          const lineas = [
+            { cuenta_id: cCaja.id, debito: total, credito: 0, descripcion: `Cobro de Factura ${fac.numero}` },
+            { cuenta_id: cVenta.id, debito: 0, credito: subtotal, descripcion: `Ingreso por Ventas Factura ${fac.numero}` },
+          ];
+          if (impuesto > 0 && cIva) {
+            lineas.push({ cuenta_id: cIva.id, debito: 0, credito: impuesto, descripcion: `IVA por pagar Factura ${fac.numero}` });
+          }
+
+          await contabilidadService.crearAsiento({
+            fecha: new Date().toISOString().split('T')[0],
+            tipo_fuente: 'factura',
+            referencia_id: fac.id,
+            concepto: `Cobro y Pago de Factura ${fac.numero}`,
+            lineas,
+          }, req.user?.id);
+        }
+      } catch (contErr) {
+        console.error('Error generando asiento automático para factura:', contErr);
+      }
+    }
+
+    res.json({ msg: `Factura marcada como ${estado}`, factura: fac });
   } catch (err) {
     console.error('Error al cambiar estado:', err);
     res.status(500).json({ msg: 'Error al actualizar factura' });

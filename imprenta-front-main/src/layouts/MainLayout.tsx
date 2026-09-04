@@ -9,11 +9,12 @@ import ThemeSwitcher       from '../components/ThemeSwitcher';
 import {
   LayoutDashboard, FileText, ClipboardList, Users, Package,
   Warehouse, BarChart2, LogOut, ChevronLeft, ChevronRight,
-  UserCog, Menu, Shield, Briefcase, User as UserIcon, Receipt, BookOpen
+  UserCog, Menu, Shield, Briefcase, User as UserIcon, Receipt, BookOpen, BookOpenCheck
 } from 'lucide-react';
 
 const NAV_ITEMS = [
   { to: '/dashboard',    label: 'Dashboard',     icon: LayoutDashboard, roles: ['admin','vendedor','empleado','secretaria'] },
+  { to: '/contabilidad', label: 'Contabilidad',  icon: BookOpenCheck,   roles: ['admin','secretaria'] },
   { to: '/cotizaciones', label: 'Cotizaciones',  icon: FileText,        roles: ['admin','vendedor','secretaria'] },
   { to: '/ordenes',      label: 'Órdenes',       icon: ClipboardList,   roles: ['admin','vendedor','empleado','secretaria'] },
   { to: '/clientes',     label: 'Clientes',      icon: Users,           roles: ['admin','vendedor','secretaria'] },

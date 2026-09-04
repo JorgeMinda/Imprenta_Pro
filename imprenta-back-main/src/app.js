@@ -16,6 +16,7 @@ const statsRoutes      = require('./routes/stats.routes');
 const inventarioRoutes = require('./routes/inventario.routes');   // NUEVO
 const usuariosRoutes   = require('./routes/usuarios.routes');      // NUEVO
 const facturacionRoutes = require('./routes/facturacion.routes');
+const contabilidadRoutes = require('./routes/contabilidad.routes');
 const app = express();
 
 // ── Seguridad ────────────────────────────────────────────────────────────────
@@ -69,6 +70,7 @@ app.use('/api/stats',          statsRoutes);
 app.use('/api/inventario',     inventarioRoutes);   // NUEVO
 app.use('/api/usuarios',       usuariosRoutes);      // NUEVO
 app.use('/api/facturacion', facturacionRoutes);
+app.use('/api/contabilidad', contabilidadRoutes);
 
 // Ruta de salud
 app.get('/', (_req, res) => res.json({ ok: true, msg: 'Imprenta PRO API v2' }));

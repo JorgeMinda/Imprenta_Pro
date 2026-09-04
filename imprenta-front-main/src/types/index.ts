@@ -136,3 +136,83 @@ export interface Notificacion {
   mensaje: string;
   fecha: string;
 }
+
+// ── Contabilidad ─────────────────────────────────────────────────────────────
+export interface CuentaContable {
+  id: number;
+  codigo: string;
+  nombre: string;
+  tipo: 'activo' | 'pasivo' | 'patrimonio' | 'ingreso' | 'costo' | 'gasto';
+  naturaleza: 'deudora' | 'acreedora';
+  nivel: number;
+  padre_id?: number | null;
+  permite_movimiento: boolean;
+  activo: boolean;
+  saldo?: number;
+  total_debito?: number;
+  total_credito?: number;
+}
+
+export interface LineaAsiento {
+  id?: number;
+  cuenta_id: number;
+  cuenta_codigo?: string;
+  cuenta_nombre?: string;
+  debito: number;
+  credito: number;
+  descripcion?: string;
+}
+
+export interface AsientoContable {
+  id: number;
+  numero_asiento: string;
+  fecha: string;
+  tipo_fuente: 'manual' | 'factura' | 'cobro_cliente' | 'cierre' | string;
+  referencia_id?: number | null;
+  concepto: string;
+  estado: 'borrador' | 'contabilizado' | 'anulado';
+  total_debito: number;
+  total_credito: number;
+  usuario_nombre?: string;
+  lineas: LineaAsiento[];
+}
+
+export interface BalanceGeneral {
+  totalActivos: number;
+  totalPasivos: number;
+  totalPatrimonio: number;
+  pasivoMasPatrimonio: number;
+  diferencia: number;
+  cuadrado: boolean;
+  cuentas: {
+    activos: CuentaContable[];
+    pasivos: CuentaContable[];
+    patrimonio: CuentaContable[];
+  };
+}
+
+export interface EstadoResultados {
+  totalIngresos: number;
+  totalCostos: number;
+  totalGastos: number;
+  utilidadBruta: number;
+  utilidadNeta: number;
+  cuentas: {
+    ingresos: CuentaContable[];
+    costos: CuentaContable[];
+    gastos: CuentaContable[];
+  };
+}
+
+export interface MovimientoClienteContable {
+  id: number;
+  numero: string;
+  fecha: string;
+  valor_factura: number;
+  estado: string;
+  cliente_nombre: string;
+  cliente_email?: string;
+  cliente_telefono?: string;
+  pagado: number;
+  saldo_pendiente: number;
+}
