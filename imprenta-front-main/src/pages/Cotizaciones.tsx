@@ -77,23 +77,24 @@ function ProductosList({ productos }: { productos: ProductoDetalle[] | null }) {
 
   return (
     <div>
-      <button onClick={() => setOpen(v => !v)}
-        className="flex items-center gap-1 text-sm text-indigo-400 hover:text-indigo-300 transition-colors font-medium">
+      <button
+        type="button"
+        onClick={() => setOpen(v => !v)}
+        className="flex items-center gap-1 text-sm text-indigo-400 hover:text-indigo-300 transition-colors font-medium"
+      >
         {items.length} productos
-        {open ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+        {open ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
       </button>
-      <AnimatePresence key="cotizacion-modal">
-        {open && (
-          <motion.div key="cotizacion-list" initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }} className="overflow-hidden mt-1 space-y-0.5">
-            {items.map((p, i) => (
-              <p key={i} className="text-xs text-gray-300">
-                • {p.producto} <span className="text-gray-500">x{p.cantidad}</span>
-              </p>
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {open && (
+        <div className="mt-1.5 space-y-1 bg-gray-900/80 p-2.5 rounded-lg border border-white/10 shadow-lg">
+          {items.map((p, i) => (
+            <div key={i} className="text-xs text-gray-300 flex justify-between items-center gap-3">
+              <span className="font-medium truncate max-w-[130px]">• {p.producto}</span>
+              <span className="text-gray-400 whitespace-nowrap">x{p.cantidad || 1} (${Number(p.precio_unitario || 0).toFixed(2)})</span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -386,8 +387,7 @@ export default function Cotizaciones() {
                 </tr>
               ) : (
                 pagination.paginated.map(c => (
-                  <motion.tr key={c.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                    className="hover:bg-white/5 transition-colors group">
+                  <tr key={c.id} className="hover:bg-white/5 transition-colors group">
                     <td className="px-6 py-4 text-sm text-gray-300 whitespace-nowrap">
                       {formatFecha(c.fecha)}
                     </td>
@@ -428,7 +428,7 @@ export default function Cotizaciones() {
                         )}
                       </div>
                     </td>
-                  </motion.tr>
+                  </tr>
                 ))
               )}
             </tbody>

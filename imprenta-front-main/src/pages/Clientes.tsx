@@ -145,9 +145,8 @@ export default function Clientes() {
             <tbody className="divide-y divide-gray-700/50">
               {filteredClientes.length === 0 ? (
                 <tr><td colSpan={5} className="px-6 py-16 text-center text-gray-400 text-sm">No se encontraron clientes.</td></tr>
-              ) : pagination.paginated.map((cliente, index) => (
-                <motion.tr key={cliente.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                  transition={{ duration: 0.3, delay: index * 0.05 }}
+              ) : pagination.paginated.map((cliente) => (
+                <tr key={cliente.id}
                   className="hover:bg-gray-800/30 transition-colors group">
                   <td className="px-6 py-4 text-sm font-medium text-white">#{cliente.id}</td>
                   <td className="px-6 py-4 text-sm font-medium text-white">{cliente.nombre}</td>
@@ -176,7 +175,7 @@ export default function Clientes() {
                       </motion.button>
                     </div>
                   </td>
-                </motion.tr>
+                </tr>
               ))}
             </tbody>
           </table>

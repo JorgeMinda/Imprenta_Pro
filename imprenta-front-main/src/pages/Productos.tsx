@@ -154,9 +154,8 @@ export default function Productos() {
             <tbody className="divide-y divide-gray-700/50">
               {filteredProductos.length === 0 ? (
                 <tr><td colSpan={6} className="px-6 py-16 text-center text-gray-400 text-sm">No se encontraron productos.</td></tr>
-              ) : pagination.paginated.map((prod, index) => (
-                <motion.tr key={prod.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                  transition={{ duration: 0.3, delay: index * 0.05 }}
+              ) : pagination.paginated.map((prod) => (
+                <tr key={prod.id}
                   className="hover:bg-gray-800/30 transition-colors group">
                   <td className="px-6 py-4 text-sm font-medium text-white">#{prod.id}</td>
                   <td className="px-6 py-4 text-sm font-medium text-white">{prod.nombre}</td>
@@ -186,7 +185,7 @@ export default function Productos() {
                       </motion.button>
                     </div>
                   </td>
-                </motion.tr>
+                </tr>
               ))}
             </tbody>
           </table>

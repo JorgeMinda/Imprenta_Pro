@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import { ConfirmProvider } from './components/ConfirmModal';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 import MainLayout    from './layouts/MainLayout';
 import Login         from './pages/Login';
@@ -29,7 +30,7 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
       </div>
     </div>
   );
-  return token ? <>{children}</> : <Navigate to="/login" replace />;
+  return token ? <ErrorBoundary>{children}</ErrorBoundary> : <Navigate to="/login" replace />;
 }
 
 function PublicOnlyRoute({ children }: { children: React.ReactNode }) {
