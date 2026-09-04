@@ -32,8 +32,26 @@ const toastStyle = {
   borderRadius: '0.75rem', border: '1px solid rgba(255,255,255,0.1)',
 };
 
-function getStatusBadgeStyles(estado: string) {
-  switch (estado.toLowerCase()) {
+function formatFecha(fecha?: string | null): string {
+  if (!fecha) return '—';
+  try {
+    if (fecha.includes('-')) {
+      const parts = fecha.split('T')[0].split('-');
+      if (parts.length === 3) {
+        const [y, m, d] = parts;
+        return `${d}/${m}/${y}`;
+      }
+    }
+    const d = new Date(fecha);
+    return isNaN(d.getTime()) ? String(fecha) : d.toLocaleDateString('es-EC');
+  } catch {
+    return String(fecha || '—');
+  }
+}
+
+function getStatusBadgeStyles(estado?: string | null) {
+  const est = (estado || '').toLowerCase();
+  switch (est) {
     case 'aprobada':  return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
     case 'rechazada': return 'bg-red-500/20 text-red-400 border-red-500/30';
     case 'anulada':   return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
@@ -44,7 +62,7 @@ function getStatusBadgeStyles(estado: string) {
 // Muestra los productos de una cotización de forma compacta
 function ProductosList({ productos }: { productos: ProductoDetalle[] | null }) {
   const [open, setOpen] = useState(false);
-  const items = productos?.filter(p => p?.producto) ?? [];
+  const items = (productos || []).filter(p => p && p.producto);
 
   if (items.length === 0) return <span className="text-gray-500 text-xs italic">—</span>;
 
@@ -52,7 +70,7 @@ function ProductosList({ productos }: { productos: ProductoDetalle[] | null }) {
     return (
       <div>
         <p className="text-sm text-gray-200 font-medium">{items[0].producto}</p>
-        <p className="text-xs text-gray-400">x{items[0].cantidad} · ${Number(items[0].precio_unitario).toFixed(2)}</p>
+        <p className="text-xs text-gray-400">x{items[0].cantidad || 1} · ${Number(items[0].precio_unitario || 0).toFixed(2)}</p>
       </div>
     );
   }
@@ -371,7 +389,7 @@ export default function Cotizaciones() {
                   <motion.tr key={c.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                     className="hover:bg-white/5 transition-colors group">
                     <td className="px-6 py-4 text-sm text-gray-300 whitespace-nowrap">
-                      {new Date(c.fecha + 'T00:00:00').toLocaleDateString('es-EC')}
+                      {formatFecha(c.fecha)}
                     </td>
                     <td className="px-6 py-4 text-sm font-semibold text-white whitespace-nowrap">
                       {c.cliente || 'Consumidor Final'}
@@ -381,16 +399,16 @@ export default function Cotizaciones() {
                       <ProductosList productos={c.productos} />
                     </td>
                     <td className="px-6 py-4 text-sm font-semibold text-white text-right whitespace-nowrap">
-                      ${Number(c.total).toFixed(2)}
+                      ${Number(c.total || 0).toFixed(2)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`px-3 py-1 inline-flex text-xs font-bold rounded-full border ${getStatusBadgeStyles(c.estado)}`}>
-                        {c.estado.charAt(0).toUpperCase() + c.estado.slice(1)}
+                        {c.estado ? c.estado.charAt(0).toUpperCase() + c.estado.slice(1) : 'Pendiente'}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right whitespace-nowrap">
                       <div className="flex justify-end items-center gap-2 opacity-70 group-hover:opacity-100 transition-opacity">
-                        {isAdminOrVendedor && c.estado.toLowerCase() === 'pendiente' && (
+                        {isAdminOrVendedor && (c.estado || '').toLowerCase() === 'pendiente' && (
                           <>
                             <button onClick={() => handleAprobar(c.id)}
                               className="p-1.5 hover:bg-emerald-500/20 rounded-lg text-emerald-400 transition-colors" title="Aprobar">

@@ -21,9 +21,10 @@ router.post('/', verifyToken, checkRole('admin', 'vendedor', 'secretaria'), crea
 router.post('/:id/aprobar', verifyToken, checkRole('admin', 'vendedor', 'secretaria'), aprobarCotizacion);
 
 // Rechazar cotización (PATCH)
-router.patch('/:id', verifyToken, checkRole('admin', 'vendedor', 'secretaria'), rechazarCotizacion);
+router.patch('/:id',          verifyToken, checkRole('admin', 'vendedor', 'secretaria'), rechazarCotizacion);
+router.patch('/:id/rechazar', verifyToken, checkRole('admin', 'vendedor', 'secretaria'), rechazarCotizacion);
 
 // Eliminar cotización (DELETE)
-router.delete('/:id', verifyToken, checkRole('admin'), eliminarCotizacion); // <-- 2. Y cámbialo aquí
+router.delete('/:id', verifyToken, checkRole('admin', 'vendedor', 'secretaria'), eliminarCotizacion);
 
 module.exports = router;

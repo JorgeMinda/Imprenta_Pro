@@ -1,5 +1,6 @@
 // src/controllers/cotizacion.controller.js — con estado corregido
 const pool = require('../config/db');
+const auditService = require('../services/audit.service');
 
 // --- 1. CREAR COTIZACIÓN ---
 exports.crearCotizacion = async (req, res) => {
@@ -14,15 +15,15 @@ exports.crearCotizacion = async (req, res) => {
     await client.query('BEGIN');
 
     const cotizacionResult = await client.query(
-      `INSERT INTO cotizaciones (cliente_id, total, estado, creado_por, fecha)
-       VALUES ($1, 0, $2, $3, CURRENT_TIMESTAMP) RETURNING id`,
+      `INSERT INTO cotizaciones (cliente_id, total, estado, creado_por, fecha, activo)
+       VALUES ($1, 0, $2, $3, CURRENT_TIMESTAMP, true) RETURNING id`,
       [cliente_id, estado, creado_por]
     );
     const cotizacion_id = cotizacionResult.rows[0].id;
 
     let total = 0;
     for (const item of productos) {
-      const subtotal = item.cantidad * item.precio_unitario;
+      const subtotal = Number(item.cantidad) * Number(item.precio_unitario);
       total += subtotal;
       await client.query(
         `INSERT INTO detalle_cotizacion (cotizacion_id, producto_id, cantidad, precio_unitario, subtotal)
@@ -33,6 +34,14 @@ exports.crearCotizacion = async (req, res) => {
 
     await client.query(`UPDATE cotizaciones SET total=$1 WHERE id=$2`, [total, cotizacion_id]);
     await client.query('COMMIT');
+
+    await auditService.registrar(req, {
+      modulo: 'cotizaciones',
+      accion: 'CREAR',
+      entidad_id: cotizacion_id,
+      descripcion: `Cotización #${cotizacion_id} creada por un total de $${total.toFixed(2)}`,
+      detalles: { cotizacion_id, cliente_id, total, items_count: productos.length },
+    });
 
     res.json({ msg: 'Cotización creada correctamente', cotizacion_id, total });
   } catch (error) {
@@ -100,6 +109,15 @@ exports.aprobarCotizacion = async (req, res) => {
     );
 
     await pool.query('COMMIT');
+
+    await auditService.registrar(req, {
+      modulo: 'cotizaciones',
+      accion: 'EDITAR',
+      entidad_id: id,
+      descripcion: `Cotización #${id} aprobada y Orden de Trabajo #${orden.rows[0].id} creada`,
+      detalles: { cotizacion_id: id, orden_id: orden.rows[0].id },
+    });
+
     res.json({ msg: 'Cotización aprobada y orden creada', orden_id: orden.rows[0].id });
   } catch (err) {
     await pool.query('ROLLBACK');
@@ -116,6 +134,15 @@ exports.rechazarCotizacion = async (req, res) => {
       `UPDATE cotizaciones SET estado = 'Rechazada' WHERE id = $1 RETURNING *`, [id]
     );
     if (result.rowCount === 0) return res.status(404).json({ msg: 'Cotización no encontrada' });
+
+    await auditService.registrar(req, {
+      modulo: 'cotizaciones',
+      accion: 'ANULAR',
+      entidad_id: id,
+      descripcion: `Cotización #${id} rechazada`,
+      detalles: { cotizacion_id: id },
+    });
+
     res.json({ msg: 'Cotización rechazada correctamente' });
   } catch (err) {
     console.error('Error al rechazar cotización:', err);
@@ -130,6 +157,15 @@ exports.eliminarCotizacion = async (req, res) => {
     await pool.query(
       `UPDATE cotizaciones SET activo = FALSE, estado = 'ANULADA' WHERE id = $1`, [id]
     );
+
+    await auditService.registrar(req, {
+      modulo: 'cotizaciones',
+      accion: 'DESACTIVAR',
+      entidad_id: id,
+      descripcion: `Cotización #${id} anulada (Soft Delete)`,
+      detalles: { cotizacion_id: id },
+    });
+
     res.json({ msg: 'Cotización anulada correctamente' });
   } catch (error) {
     console.error(error);
