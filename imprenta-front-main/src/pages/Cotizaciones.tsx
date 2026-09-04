@@ -140,6 +140,18 @@ export default function Cotizaciones() {
 
   useEffect(() => { fetchData(); }, []);
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[70vh]">
+        <div className="flex space-x-2">
+          {[0, 0.1, 0.2].map((d, i) => (
+            <div key={i} className="w-4 h-4 rounded-full bg-indigo-500 animate-bounce" style={{ animationDelay: `${d}s` }} />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   // ── Manejo del form multi-producto ───────────────────────────────────────
   const updateItem = (idx: number, field: keyof ItemForm, value: string | number) => {
     setItems(prev => {
@@ -247,28 +259,24 @@ export default function Cotizaciones() {
           <p className="text-sm text-gray-400 mt-1">Gestiona y administra las cotizaciones de clientes</p>
         </div>
         {isAdminOrVendedor && (
-          <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+          <button
+            type="button"
             onClick={() => setShowForm(v => !v)}
             className="flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white px-5 py-2.5 rounded-xl transition-all shadow-lg shadow-indigo-500/30 font-medium"
           >
             {showForm ? <X className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
-            {showForm ? 'Cancelar' : 'Nueva Cotización'}
-          </motion.button>
+            <span>{showForm ? 'Cancelar' : 'Nueva Cotización'}</span>
+          </button>
         )}
       </div>
 
       {/* Formulario */}
-      <AnimatePresence>
-        {showForm && isAdminOrVendedor && (
-          <motion.div
-            initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -16 }}
-            className="glass p-6 shadow-2xl"
-          >
-            <h2 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
-              <span className="w-2 h-6 bg-indigo-500 rounded-full inline-block" />
-              Crear Nueva Cotización
-            </h2>
+      {showForm && isAdminOrVendedor && (
+        <div className="glass p-6 shadow-2xl rounded-2xl">
+          <h2 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
+            <span className="w-2 h-6 bg-indigo-500 rounded-full inline-block" />
+            <span>Crear Nueva Cotización</span>
+          </h2>
 
             <form onSubmit={handleSubmit} className="space-y-5">
               {/* Cliente */}
@@ -342,64 +350,52 @@ export default function Cotizaciones() {
               </div>
 
               <div className="flex justify-end pt-2">
-                <motion.button type="submit" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-                  className="bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white px-8 py-3 rounded-xl font-semibold shadow-lg shadow-indigo-500/30 transition-all"
+                <button
+                  type="submit"
+                  className="bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white px-8 py-3 rounded-xl font-semibold shadow-lg shadow-indigo-500/30 transition-all cursor-pointer"
                 >
-                  Guardar Cotización
-                </motion.button>
+                  <span>Guardar Cotización</span>
+                </button>
               </div>
             </form>
-          </motion.div>
-        )}
-      </AnimatePresence>
+        </div>
+      )}
 
       {/* Tabla */}
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-            className="glass-strong overflow-hidden shadow-2xl"
-      >
+      <div className="glass-strong overflow-hidden shadow-2xl rounded-2xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
               <tr className="bg-gray-800/40 border-b border-white/5">
                 {['Fecha','Cliente','Productos','Total','Estado','Acciones'].map(h => (
                   <th key={h} className={`px-6 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wider
-                    ${h === 'Total' || h === 'Acciones' ? 'text-right' : ''}`}>{h}</th>
+                    ${h === 'Total' || h === 'Acciones' ? 'text-right' : ''}`}><span>{h}</span></th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
-              {loading ? (
-                Array.from({ length: 4 }).map((_, i) => (
-                  <tr key={i}>
-                    {[1,2,3,4,5,6].map(j => (
-                      <td key={j} className="px-6 py-4">
-                        <div className="h-4 bg-gray-700/60 rounded animate-pulse" style={{ width: `${50 + j * 8}%` }} />
-                      </td>
-                    ))}
-                  </tr>
-                ))
-              ) : cotizaciones.length === 0 ? (
+              {cotizaciones.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-16 text-center">
                     <Package className="w-12 h-12 text-gray-600 mx-auto mb-3" />
-                    <p className="text-gray-500">No hay cotizaciones registradas aún.</p>
+                    <p className="text-gray-500"><span>No hay cotizaciones registradas aún.</span></p>
                   </td>
                 </tr>
               ) : (
                 pagination.paginated.map(c => (
                   <tr key={c.id} className="hover:bg-white/5 transition-colors group">
                     <td className="px-6 py-4 text-sm text-gray-300 whitespace-nowrap">
-                      {formatFecha(c.fecha)}
+                      <span>{formatFecha(c.fecha)}</span>
                     </td>
                     <td className="px-6 py-4 text-sm font-semibold text-white whitespace-nowrap">
-                      {c.cliente || 'Consumidor Final'}
+                      <span>{c.cliente || 'Consumidor Final'}</span>
                     </td>
-                    {/* ── COLUMNA CORREGIDA: lee c.productos[] en lugar de c.producto ── */}
+                    {/* ── COLUMNA PRODUCTOS ── */}
                     <td className="px-6 py-4 min-w-[180px]">
                       <ProductosList productos={c.productos} />
                     </td>
                     <td className="px-6 py-4 text-sm font-semibold text-white text-right whitespace-nowrap">
-                      ${Number(c.total || 0).toFixed(2)}
+                      <span>${Number(c.total || 0).toFixed(2)}</span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`px-3 py-1 inline-flex text-xs font-bold rounded-full border ${getStatusBadgeStyles(c.estado)}`}>
@@ -410,19 +406,31 @@ export default function Cotizaciones() {
                       <div className="flex justify-end items-center gap-2 opacity-70 group-hover:opacity-100 transition-opacity">
                         {isAdminOrVendedor && (c.estado || '').toLowerCase() === 'pendiente' && (
                           <>
-                            <button onClick={() => handleAprobar(c.id)}
-                              className="p-1.5 hover:bg-emerald-500/20 rounded-lg text-emerald-400 transition-colors" title="Aprobar">
+                            <button
+                              type="button"
+                              onClick={() => handleAprobar(c.id)}
+                              className="p-1.5 hover:bg-emerald-500/20 rounded-lg text-emerald-400 transition-colors cursor-pointer"
+                              title="Aprobar"
+                            >
                               <CheckCircle className="w-4 h-4" />
                             </button>
-                            <button onClick={() => handleRechazar(c.id)}
-                              className="p-1.5 hover:bg-red-500/20 rounded-lg text-red-400 transition-colors" title="Rechazar">
+                            <button
+                              type="button"
+                              onClick={() => handleRechazar(c.id)}
+                              className="p-1.5 hover:bg-red-500/20 rounded-lg text-red-400 transition-colors cursor-pointer"
+                              title="Rechazar"
+                            >
                               <XCircle className="w-4 h-4" />
                             </button>
                           </>
                         )}
                         {isAdmin && (
-                          <button onClick={() => handleEliminar(c.id)}
-                            className="p-1.5 hover:bg-red-500/20 rounded-lg text-gray-400 hover:text-red-400 transition-colors" title="Eliminar">
+                          <button
+                            type="button"
+                            onClick={() => handleEliminar(c.id)}
+                            className="p-1.5 hover:bg-red-500/20 rounded-lg text-gray-400 hover:text-red-400 transition-colors cursor-pointer"
+                            title="Eliminar"
+                          >
                             <Trash2 className="w-4 h-4" />
                           </button>
                         )}
@@ -435,7 +443,7 @@ export default function Cotizaciones() {
           </table>
         </div>
         <Pagination total={pagination.total} page={pagination.page} pageSize={pagination.pageSize} onPageChange={pagination.setPage} onPageSizeChange={pagination.setPageSize} />
-      </motion.div>
+      </div>
     </div>
   );
 }
