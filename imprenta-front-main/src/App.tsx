@@ -30,12 +30,22 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
   return token ? <>{children}</> : <Navigate to="/login" replace />;
 }
 
+function PublicOnlyRoute({ children }: { children: React.ReactNode }) {
+  const { token, loading } = useAuth();
+  if (loading) return null;
+  return token ? <Navigate to="/dashboard" replace /> : <>{children}</>;
+}
+
 export default function App() {
   return (
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <ConfirmProvider>
         <Routes>
-          <Route path="/login" element={<Login />} />
+          <Route path="/login" element={
+            <PublicOnlyRoute>
+              <Login />
+            </PublicOnlyRoute>
+          } />
           <Route path="/" element={
             <PrivateRoute>
               <MainLayout />

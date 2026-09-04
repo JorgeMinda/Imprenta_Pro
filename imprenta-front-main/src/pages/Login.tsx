@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { motion } from 'framer-motion';
@@ -13,12 +13,18 @@ type Theme = {
 };
 
 export default function Login() {
-  const { login } = useAuth();
+  const { login, token } = useAuth();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (token) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [token, navigate]);
 
   const toastStyle = {
     background: '#1F2937',
@@ -47,11 +53,11 @@ export default function Login() {
     setLoading(true);
     const res = await login(email, password);
     if (res.ok) {
-      navigate('/dashboard');
+      navigate('/dashboard', { replace: true });
     } else {
       toast.error(res.msg || 'Correo o contraseña incorrectos', { style: toastStyle, duration: 4000 });
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (

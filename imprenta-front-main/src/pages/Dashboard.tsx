@@ -53,20 +53,23 @@ export default function Dashboard() {
     try {
       const [statsData, productos] = await Promise.all([
         apiClient.get<{ diseno?: number; pendientes?: number; en_proceso?: number; terminadas?: number; entregadas?: number; ganancias?: number; total_clientes?: number; ventas_mensuales?: Stats['ventas_mensuales'] }>('/api/stats/dashboard'),
-        apiClient.get<ProductoAlert[]>('/api/productos'),
+        apiClient.get<ProductoAlert[]>('/api/productos').catch(() => []),
       ]);
 
-      setStats({
-        diseno:          statsData.diseno          ?? statsData.pendientes ?? 0,
-        en_proceso:      statsData.en_proceso      ?? 0,
-        terminadas:      statsData.terminadas      ?? 0,
-        entregadas:      statsData.entregadas      ?? 0,
-        ganancias:       statsData.ganancias       ?? 0,
-        total_clientes:  statsData.total_clientes  ?? 0,
-        ventas_mensuales: statsData.ventas_mensuales ?? [],
-      });
+      if (statsData) {
+        setStats({
+          diseno:          statsData.diseno          ?? statsData.pendientes ?? 0,
+          en_proceso:      statsData.en_proceso      ?? 0,
+          terminadas:      statsData.terminadas      ?? 0,
+          entregadas:      statsData.entregadas      ?? 0,
+          ganancias:       statsData.ganancias       ?? 0,
+          total_clientes:  statsData.total_clientes  ?? 0,
+          ventas_mensuales: Array.isArray(statsData.ventas_mensuales) ? statsData.ventas_mensuales : [],
+        });
+      }
 
-      setAlertasStock(productos.filter((p: ProductoAlert) => p.stock !== undefined && p.stock <= 5));
+      const prods = Array.isArray(productos) ? productos : [];
+      setAlertasStock(prods.filter((p: ProductoAlert) => p && p.stock !== undefined && Number(p.stock) <= 5));
 
       if (!manual && user?.nombre && !sessionStorage.getItem('welcomeToastShown')) {
         toast(`¡Bienvenido de nuevo, ${user.nombre}!`, { icon: '👋', style: toastStyle, duration: 3000 });
