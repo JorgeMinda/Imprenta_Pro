@@ -38,19 +38,6 @@ const toastStyle = {
   borderRadius: '0.75rem', border: '1px solid rgba(255,255,255,0.1)',
 };
 
-// ── Skeleton loader ────────────────────────────────────────────────────────
-function SkeletonRow() {
-  return (
-    <tr>
-      {[1,2,3,4,5,6].map(i => (
-        <td key={i} className="px-6 py-4">
-          <div className="h-4 bg-gray-700/60 rounded animate-pulse" style={{ width: `${60 + i*10}%` }} />
-        </td>
-      ))}
-    </tr>
-  );
-}
-
 // ── Modal crear/editar material ────────────────────────────────────────────
 function ModalMaterial({ item, onClose, onSave }: {
   item: ItemInventario | null;
